@@ -1,0 +1,243 @@
+.edit-page {
+    padding-bottom: 96px;
+}
+
+.edit-header {
+    margin-bottom: 14px;
+}
+
+.edit-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 10px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 850;
+}
+
+.edit-title {
+    margin: 0;
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 950;
+}
+
+.edit-subtitle {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.edit-flash-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.edit-flash-message {
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.edit-flash-message.success {
+    background: #eaf7ee;
+    color: #2f8f4e;
+}
+
+.edit-flash-message.error {
+    background: #fff0f0;
+    color: #d94848;
+}
+
+.edit-form-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.edit-field {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    align-items: center;
+    gap: 10px;
+}
+
+.edit-field > span {
+    margin: 0;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.edit-field input,
+.edit-field textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    outline: none;
+    background: #fff;
+    color: var(--text);
+    padding: 11px 12px;
+    font-size: 16px;
+    font-weight: 750;
+}
+
+.edit-field textarea {
+    min-height: 86px;
+    resize: vertical;
+}
+
+.edit-field input:focus,
+.edit-field textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(214, 93, 141, 0.14);
+}
+
+.edit-money-row {
+    display: grid;
+    grid-template-columns: 1fr 42px;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-money-row input {
+    flex: 1;
+}
+
+.edit-money-row strong {
+    color: var(--text);
+    text-align: right;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.edit-side-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.edit-side-row input,
+.edit-relation-grid input {
+    display: none;
+}
+
+.edit-side-row label,
+.edit-relation-grid label {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 11px 10px;
+    background: #fff;
+    color: var(--muted);
+    text-align: center;
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.edit-side-row label {
+    padding: 12px 8px;
+}
+
+.edit-side-row input:checked + label,
+.edit-relation-grid input:checked + label {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+}
+
+#edit_side_bride:checked + label {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+}
+
+#edit_side_groom:checked + label {
+    border-color: #4c6ef5;
+    background: #edf2ff;
+    color: #364fc7;
+}
+
+.edit-relation-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.edit-field.wide-field {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.edit-ticket-control {
+    display: grid;
+    grid-template-columns: 56px 1fr 56px;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-ticket-btn {
+    height: 46px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #fff;
+    color: var(--primary-dark);
+    font-size: 22px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.edit-ticket-control input {
+    height: 46px;
+    padding: 0;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 950;
+}
+
+.edit-submit-row {
+    position: sticky;
+    bottom: 76px;
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 10px;
+    padding: 12px 0 4px;
+    background: linear-gradient(
+        to top,
+        var(--bg) 0%,
+        var(--bg) 78%,
+        rgba(255, 247, 249, 0) 100%
+    );
+}
+
+.edit-cancel-button,
+.edit-save-button {
+    height: 52px;
+    border: none;
+    border-radius: 17px;
+    font-size: 15px;
+    font-weight: 950;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.edit-cancel-button {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--muted);
+}
+
+.edit-save-button {
+    background: var(--primary);
+    color: #fff;
+    gap: 7px;
+}

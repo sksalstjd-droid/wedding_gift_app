@@ -1,0 +1,332 @@
+.records-page {
+    padding-bottom: 96px;
+}
+
+.records-control-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 12px 13px;
+    margin-bottom: 12px;
+    box-shadow: 0 7px 18px rgba(80, 50, 40, 0.045);
+}
+
+.records-top-line {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+
+.records-title {
+    margin: 0;
+    color: var(--text);
+    font-size: 17px;
+    line-height: 1.2;
+    font-weight: 950;
+}
+
+.records-total-text {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.records-search-box {
+    height: 40px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 0 12px;
+    margin-bottom: 9px;
+    background: #fbf8f8;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.records-search-box i {
+    color: var(--muted);
+    font-size: 16px;
+}
+
+.records-search-box input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.records-search-box input::placeholder {
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.records-option-line {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    align-items: center;
+    gap: 8px;
+    margin-top: 7px;
+}
+
+.records-option-label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.records-chip-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 1px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.records-chip-group::-webkit-scrollbar {
+    display: none;
+}
+
+.record-filter-chip,
+.record-sort-chip {
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 10px;
+    background: #fff;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.record-filter-chip.active,
+.record-sort-chip.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #fff;
+}
+
+.record-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.record-card {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    padding: 9px 12px 8px;
+    background: #fff;
+    box-shadow: 0 7px 17px rgba(80, 50, 40, 0.045);
+    overflow: visible;
+}
+
+.record-card::before {
+    content: none;
+    display: none;
+}
+
+.record-main-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 3px;
+}
+
+.record-person {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+.record-envelope {
+    flex: 0 0 auto;
+    border-radius: 999px;
+    padding: 3px 7px;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 12px;
+    font-weight: 950;
+}
+
+.groom-record .record-envelope {
+    background: #edf2ff;
+    color: #364fc7;
+}
+
+.record-name {
+    min-width: 0;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 950;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.record-right {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: minmax(82px, auto) 30px;
+    align-items: center;
+    gap: 4px;
+}
+
+.record-amount {
+    justify-self: end;
+    color: var(--text);
+    text-align: right;
+    font-size: 16px;
+    font-weight: 950;
+    white-space: nowrap;
+}
+
+.record-sub-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-height: 22px;
+    padding-right: 34px;
+}
+
+.record-meta {
+    min-width: 0;
+    margin-top: 0;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.record-meta span {
+    min-width: 0;
+}
+
+.record-meta span:not(:last-child)::after {
+    content: "·";
+    margin-left: 4px;
+    color: #c9b8ae;
+}
+
+.record-side-text {
+    font-weight: 950;
+}
+
+.record-side-text.bride-text,
+.bride-record .record-side-text {
+    color: var(--primary-dark);
+}
+
+.record-side-text.groom-text,
+.groom-record .record-side-text {
+    color: #364fc7;
+}
+
+.record-ticket {
+    flex: 0 0 auto;
+    justify-self: end;
+    border: 1px solid #ffe0a3;
+    border-radius: 999px;
+    padding: 4px 8px;
+    background: #fff7e6;
+    color: #b66b00;
+    font-size: 12px;
+    font-weight: 950;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+
+.record-ticket i {
+    font-size: 12px;
+}
+
+.record-menu {
+    position: relative;
+}
+
+.record-menu summary {
+    list-style: none;
+}
+
+.record-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.record-menu-button {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.record-menu-button:hover {
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+}
+
+.record-menu-panel {
+    position: absolute;
+    top: 32px;
+    right: 0;
+    z-index: 30;
+    min-width: 112px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 6px;
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(70, 45, 35, 0.16);
+}
+
+.record-menu-item {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 9px 10px;
+    background: transparent;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 850;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+}
+
+.record-menu-item:hover {
+    background: var(--primary-soft);
+}
+
+.record-menu-item.danger {
+    color: #d94848;
+}
+
+.record-empty-message {
+    margin: 22px 0;
+    color: var(--muted);
+    text-align: center;
+    font-size: 14px;
+    font-weight: 750;
+}

@@ -106,11 +106,11 @@
 
                     <div class="record-sub-row">
                         <div class="record-meta">
-                            <span>{{ gift.relation or '관계 없음' }}</span>
-
                             <span class="record-side-text {% if gift.side == '신랑측' %}groom-text{% else %}bride-text{% endif %}">
                                 {{ gift.side }}
                             </span>
+
+                            <span>{{ gift.relation or '관계 없음' }}</span>
 
                             {% if gift.memo %}
                                 <span>메모 있음</span>
