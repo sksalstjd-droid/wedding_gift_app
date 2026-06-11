@@ -45,3 +45,7 @@ http://127.0.0.1:5000
 - 엑셀 다운로드
 - PostgreSQL 연결
 - 외부 배포
+
+## Icon attribution
+
+Diamond ring icon designed by [Umeicon](https://www.flaticon.com/authors/umeicon) from [Flaticon](https://www.flaticon.com/).

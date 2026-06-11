@@ -50,60 +50,66 @@ textarea {
     background: var(--bg);
 }
 
-.top-header {
+.app-header {
     position: sticky;
     top: 0;
     z-index: 20;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
-    min-height: 58px;
-    padding: 10px 14px;
-    background: rgba(248, 243, 241, 0.96);
-    border-bottom: 1px solid var(--line);
+    gap: 12px;
+    min-height: 56px;
+    padding: 9px 14px;
+    background: rgba(255, 255, 255, 0.98);
+    border-bottom: 1px solid rgba(234, 222, 217, 0.9);
+    box-shadow: 0 2px 10px rgba(80, 50, 40, 0.045);
 }
 
-.header-left {
-    min-width: 0;
-}
-
-.header-main-title {
-    display: flex;
+.app-brand {
+    display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
     min-width: 0;
+    white-space: nowrap;
+}
+
+.app-title-icon {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.app-title-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
     font-size: 17px;
-    font-weight: 850;
+    font-weight: 900;
     line-height: 1.2;
     white-space: nowrap;
 }
 
-.header-main-title span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.header-sub-title {
-    margin-top: 3px;
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.header-excel-button {
+.header-export-button {
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 6px;
     height: 34px;
-    padding: 0 10px;
+    padding: 0 14px;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: #fff;
-    color: var(--text);
+    background: #fffdfd;
+    color: var(--primary-dark);
     font-size: 12px;
-    font-weight: 750;
+    font-weight: 850;
+    white-space: nowrap;
+}
+
+.header-export-button i {
+    font-size: 15px;
 }
 
 .main-content {
@@ -253,7 +259,24 @@ textarea {
         padding: 12px;
     }
 
-    .header-excel-button span {
-        display: none;
+    .app-header {
+        gap: 8px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .app-title-icon {
+        width: 22px;
+        height: 22px;
+    }
+
+    .app-title-text {
+        font-size: 16px;
+    }
+
+    .header-export-button {
+        height: 34px;
+        padding: 0 13px;
+        font-size: 11px;
     }
 }

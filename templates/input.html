@@ -247,30 +247,30 @@
         <h3 class="small-section-title">최근 입력</h3>
 
         {% if recent_gifts %}
-            <div class="recent-list">
+            <div class="recent-list record-list">
                 {% for gift in recent_gifts %}
-                    <div class="recent-card">
-                        <div class="recent-main">
-                            <strong>
-                                <span class="recent-envelope">#{{ gift.envelope_no }}</span>
-                                {{ gift.name }}
-                            </strong>
+                    <article class="record-card recent-card {% if gift.side == '신랑측' %}groom-record{% else %}bride-record{% endif %}">
+                        <div class="record-main-row">
+                            <div class="record-person">
+                                <span class="record-envelope">#{{ gift.envelope_no }}</span>
+                                <span class="record-name">{{ gift.name }}</span>
+                            </div>
 
-                            <div class="recent-right">
-                                <span class="recent-amount">{{ gift.amount|money }}</span>
+                            <div class="record-right">
+                                <span class="record-amount">{{ gift.amount|money }}</span>
 
-                                <details class="recent-menu">
-                                    <summary aria-label="최근 입력 메뉴">
+                                <details class="record-menu">
+                                    <summary class="record-menu-button" aria-label="최근 입력 메뉴">
                                         <i class="bi bi-three-dots-vertical"></i>
                                     </summary>
 
-                                    <div class="recent-menu-panel">
+                                    <div class="record-menu-panel">
                                         <form
                                             method="POST"
                                             action="{{ url_for('delete_gift', gift_id=gift.id) }}"
                                             onsubmit="return confirm('#{{ gift.envelope_no }} {{ gift.name }}님 입력 내역을 삭제할까요?');"
                                         >
-                                            <button type="submit" class="recent-menu-delete">
+                                            <button type="submit" class="record-menu-item danger">
                                                 <i class="bi bi-trash"></i>
                                                 삭제
                                             </button>
@@ -280,14 +280,25 @@
                             </div>
                         </div>
 
-                        <div class="recent-sub">
-                            <span>{{ gift.side }}</span>
-                            <span>식권 {{ gift.meal_ticket_count }}장</span>
-                            {% if gift.relation %}
-                                <span>{{ gift.relation }}</span>
-                            {% endif %}
+                        <div class="record-sub-row">
+                            <div class="record-meta">
+                                <span class="record-side-text {% if gift.side == '신랑측' %}groom-text{% else %}bride-text{% endif %}">
+                                    {{ gift.side }}
+                                </span>
+
+                                {% if gift.relation %}
+                                    <span>{{ gift.relation }}</span>
+                                {% else %}
+                                    <span>관계 없음</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="record-ticket">
+                                <i class="bi bi-ticket-perforated"></i>
+                                식권 {{ gift.meal_ticket_count }}장
+                            </div>
                         </div>
-                    </div>
+                    </article>
                 {% endfor %}
             </div>
         {% else %}
@@ -446,5 +457,31 @@
             }
         });
     });
+
+    // 최근 입력 카드 ⋮ 메뉴는 한 번에 하나만 열리도록 처리
+    document.querySelectorAll(".record-menu").forEach((menu) => {
+        menu.addEventListener("toggle", function () {
+            if (!menu.open) {
+                return;
+            }
+
+            document.querySelectorAll(".record-menu").forEach((otherMenu) => {
+                if (otherMenu !== menu) {
+                    otherMenu.open = false;
+                }
+            });
+        });
+    });
+
+    // 메뉴 바깥을 누르면 열린 메뉴 닫기
+    document.addEventListener("click", function (event) {
+        if (event.target.closest(".record-menu")) {
+            return;
+        }
+
+        document.querySelectorAll(".record-menu").forEach((menu) => {
+            menu.open = false;
+        });
+    });    
 </script>
 {% endblock %}

@@ -4,8 +4,7 @@ from types import SimpleNamespace
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment
-from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from models import db, Event, Gift
 from config import Config
@@ -570,8 +569,22 @@ def export_excel():
     gifts = sort_gifts_by_side_and_envelope(gifts)
 
     workbook = Workbook()
+    workbook.calculation.calcMode = "auto"
+    workbook.calculation.fullCalcOnLoad = True
+    workbook.calculation.forceFullCalc = True
+
     sheet = workbook.active
     sheet.title = "축의금 내역"
+
+    # 엑셀 레이아웃
+    # 1행: 제목
+    # 3~4행: 필터와 연동되는 작은 요약표
+    # 6행: 표 헤더
+    # 7행부터: 실제 데이터
+    header_row = 6
+    data_start_row = header_row + 1
+    data_end_row = header_row + len(gifts)
+    formula_end_row = max(data_start_row, data_end_row)
 
     headers = [
         "구분",
@@ -584,18 +597,65 @@ def export_excel():
         "입력시간",
         "수정시간",
     ]
-    sheet.append(headers)
 
-    header_fill = PatternFill("solid", fgColor="FCE4EC")
+    # 제목
+    sheet["A1"] = "축의금 내역"
+    sheet.merge_cells("A1:I1")
+    sheet["A1"].font = Font(bold=True, size=15, color="222222")
+    sheet["A1"].alignment = Alignment(vertical="center")
+
+    # 필터 연동 요약표
+    summary_headers = ["구분", "건수", "금액", "식권"]
+    summary_values = [
+        "현재 표시",
+        f"=SUBTOTAL(103,C{data_start_row}:C{formula_end_row})",
+        f"=SUBTOTAL(109,D{data_start_row}:D{formula_end_row})",
+        f"=SUBTOTAL(109,E{data_start_row}:E{formula_end_row})",
+    ]
+
+    for column_index, value in enumerate(summary_headers, start=1):
+        sheet.cell(row=3, column=column_index, value=value)
+
+    for column_index, value in enumerate(summary_values, start=1):
+        sheet.cell(row=4, column=column_index, value=value)
+
+    # 표 헤더
+    for column_index, header in enumerate(headers, start=1):
+        sheet.cell(row=header_row, column=column_index, value=header)
+
+    neutral_fill = PatternFill("solid", fgColor="EDEDED")
+    summary_value_fill = PatternFill("solid", fgColor="F7F7F7")
     header_font = Font(bold=True, color="333333")
+    thin_side = Side(style="thin", color="D9D9D9")
+    table_border = Border(left=thin_side, right=thin_side, top=thin_side, bottom=thin_side)
 
-    for cell in sheet[1]:
-        cell.fill = header_fill
+    # 요약표 스타일
+    for row_no in (3, 4):
+        for column_index in range(1, 5):
+            cell = sheet.cell(row=row_no, column=column_index)
+            cell.border = table_border
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+
+            if row_no == 3:
+                cell.fill = neutral_fill
+                cell.font = header_font
+            else:
+                cell.fill = summary_value_fill
+
+    sheet["B4"].number_format = '0"건"'
+    sheet["C4"].number_format = '#,##0"원"'
+    sheet["D4"].number_format = '0"장"'
+
+    # 데이터 표 헤더 스타일
+    for cell in sheet[header_row]:
+        cell.fill = neutral_fill
         cell.font = header_font
+        cell.border = table_border
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
-    for gift in gifts:
-        sheet.append([
+    # 데이터 입력
+    for row_index, gift in enumerate(gifts, start=data_start_row):
+        row_values = [
             gift.side,
             gift.envelope_no,
             gift.name,
@@ -605,20 +665,21 @@ def export_excel():
             gift.memo or "",
             gift.created_at.strftime("%Y-%m-%d %H:%M") if gift.created_at else "",
             gift.updated_at.strftime("%Y-%m-%d %H:%M") if gift.updated_at else "",
-        ])
+        ]
 
-    for row in sheet.iter_rows(min_row=2, min_col=4, max_col=4):
-        for cell in row:
-            cell.number_format = '#,##0'
+        for column_index, value in enumerate(row_values, start=1):
+            cell = sheet.cell(row=row_index, column=column_index, value=value)
+            cell.border = table_border
+            cell.alignment = Alignment(vertical="center")
 
     column_widths = {
         "A": 10,
-        "B": 10,
-        "C": 16,
-        "D": 14,
-        "E": 8,
-        "F": 14,
-        "G": 26,
+        "B": 9,
+        "C": 14,
+        "D": 13,
+        "E": 7,
+        "F": 10,
+        "G": 24,
         "H": 18,
         "I": 18,
     }
@@ -626,15 +687,33 @@ def export_excel():
     for column_letter, width in column_widths.items():
         sheet.column_dimensions[column_letter].width = width
 
-    for row in sheet.iter_rows():
-        for cell in row:
-            cell.alignment = Alignment(vertical="center")
+    # 데이터 정렬 및 숫자 표시 형식
+    for row in sheet.iter_rows(min_row=data_start_row, max_row=data_end_row):
+        row[0].alignment = Alignment(horizontal="center", vertical="center")
+        row[1].alignment = Alignment(horizontal="center", vertical="center")
+        row[2].alignment = Alignment(horizontal="left", vertical="center")
+        row[3].alignment = Alignment(horizontal="right", vertical="center")
+        row[3].number_format = "#,##0"
+        row[4].alignment = Alignment(horizontal="center", vertical="center")
+        row[4].number_format = "0"
+        row[5].alignment = Alignment(horizontal="left", vertical="center")
+        row[6].alignment = Alignment(horizontal="left", vertical="center")
+        row[7].alignment = Alignment(horizontal="center", vertical="center")
+        row[8].alignment = Alignment(horizontal="center", vertical="center")
+
+    # 필터는 표 헤더부터, 틀 고정은 데이터 시작행부터 적용합니다.
+    sheet.auto_filter.ref = f"A{header_row}:I{max(header_row, data_end_row)}"
+    sheet.freeze_panes = f"A{data_start_row}"
+
+    # 입력시간/수정시간은 포함하되 기본 숨김 처리합니다.
+    sheet.column_dimensions["H"].hidden = True
+    sheet.column_dimensions["I"].hidden = True
 
     output = BytesIO()
     workbook.save(output)
     output.seek(0)
 
-    filename = f"{event.event_name}_축의금_내역.xlsx"
+    filename = f"축의금_내역_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx"
 
     return send_file(
         output,
