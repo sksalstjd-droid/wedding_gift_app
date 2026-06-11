@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <section class="records-page">
+    <div class="records-control-card">
+        <div class="records-top-line">
+            <h2 class="records-title">전체 내역</h2>
+            <span class="records-total-text">총 {{ gifts|length }}건</span>
+        </div>
+
+        <div class="records-search-box">
+            <i class="bi bi-search"></i>
+            <input
+                type="search"
+                id="recordSearchInput"
+                placeholder="봉투번호, 이름, 관계, 메모 검색"
+                autocomplete="off"
+            >
+        </div>
+
+        <div class="records-option-line">
+            <span class="records-option-label">필터</span>
+
+            <div class="records-chip-group">
+                <button type="button" class="record-filter-chip active" data-side-filter="all">
+                    전체
+                </button>
+                <button type="button" class="record-filter-chip" data-side-filter="신부측">
+                    신부측
+                </button>
+                <button type="button" class="record-filter-chip" data-side-filter="신랑측">
+                    신랑측
+                </button>
+            </div>
+        </div>
+
+        <div class="records-option-line">
+            <span class="records-option-label">정렬</span>
+
+            <div class="records-chip-group">
+                <button type="button" class="record-sort-chip active" data-sort-type="envelope">
+                    봉투순
+                </button>
+                <button type="button" class="record-sort-chip" data-sort-type="amount">
+                    금액순
+                </button>
+                <button type="button" class="record-sort-chip" data-sort-type="relation">
+                    관계순
+                </button>
+                <button type="button" class="record-sort-chip" data-sort-type="ticket">
+                    식권순
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% if gifts %}
+        <div class="record-list" id="recordList">
+            {% for gift in gifts %}
+                <article
+                    class="record-card {% if gift.side == '신랑측' %}groom-record{% else %}bride-record{% endif %}"
+                    data-search-text="#{{ gift.envelope_no }} {{ gift.name }} {{ gift.side }} {{ gift.relation or '' }} {{ gift.memo or '' }}"
+                    data-side="{{ gift.side }}"
+                    data-envelope="{{ gift.envelope_no }}"
+                    data-amount="{{ gift.amount }}"
+                    data-relation="{{ gift.relation or '' }}"
+                    data-ticket="{{ gift.meal_ticket_count }}"
+                >
+                    <div class="record-main-row">
+                        <div class="record-person">
+                            <span class="record-envelope">#{{ gift.envelope_no }}</span>
+                            <span class="record-name">{{ gift.name }}</span>
+                        </div>
+
+                        <div class="record-right">
+                            <span class="record-amount">{{ gift.amount|money }}</span>
+
+                            <details class="record-menu">
+                                <summary class="record-menu-button">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </summary>
+
+                                <div class="record-menu-panel">
+                                    <a
+                                        href="{{ url_for('edit_gift', gift_id=gift.id) }}"
+                                        class="record-menu-item"
+                                    >
+                                        <i class="bi bi-pencil"></i>
+                                        수정
+                                    </a>
+
+                                    <form
+                                        method="POST"
+                                        action="{{ url_for('delete_gift', gift_id=gift.id) }}"
+                                        onsubmit="return confirm('이 내역을 삭제할까요? 삭제 후 입력 화면의 다음 봉투번호가 #{{ gift.envelope_no }}로 돌아갑니다.');"
+                                    >
+                                        <button type="submit" class="record-menu-item danger">
+                                            <i class="bi bi-trash"></i>
+                                            삭제
+                                        </button>
+                                    </form>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+
+                    <div class="record-sub-row">
+                        <div class="record-meta">
+                            <span>{{ gift.relation or '관계 없음' }}</span>
+
+                            <span class="record-side-text {% if gift.side == '신랑측' %}groom-text{% else %}bride-text{% endif %}">
+                                {{ gift.side }}
+                            </span>
+
+                            {% if gift.memo %}
+                                <span>메모 있음</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="record-ticket">
+                            <i class="bi bi-ticket-perforated"></i>
+                            {{ gift.meal_ticket_count }}장
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        <p class="record-empty-message" id="recordSearchEmpty" style="display: none;">
+            검색 결과가 없습니다.
+        </p>
+    {% else %}
+        <div class="empty-state-card">
+            <i class="bi bi-inbox"></i>
+            <p>아직 입력된 축의금 내역이 없습니다.</p>
+        </div>
+    {% endif %}
+</section>
+
+<script>
+    const recordSearchInput = document.getElementById("recordSearchInput");
+    const recordList = document.getElementById("recordList");
+    const recordCards = Array.from(document.querySelectorAll(".record-card"));
+    const recordSearchEmpty = document.getElementById("recordSearchEmpty");
+
+    const sideFilterButtons = document.querySelectorAll("[data-side-filter]");
+    const sortButtons = document.querySelectorAll("[data-sort-type]");
+
+    let currentSideFilter = "all";
+    let currentSortType = "envelope";
+
+    const relationOrder = {
+        "가족": 1,
+        "친척": 2,
+        "친구": 3,
+        "직장": 4,
+        "지인": 5,
+        "기타": 6,
+    };
+
+    function getSideOrder(side) {
+        if (side === "신부측") {
+            return 1;
+        }
+
+        if (side === "신랑측") {
+            return 2;
+        }
+
+        return 9;
+    }
+
+    function getRelationOrder(relation) {
+        if (!relation) {
+            return 999;
+        }
+
+        return relationOrder[relation] || 100;
+    }
+
+    function applyRecordView() {
+        const keyword = recordSearchInput
+            ? recordSearchInput.value.trim().toLowerCase()
+            : "";
+
+        let visibleCards = [];
+
+        recordCards.forEach((card) => {
+            const searchText = (card.dataset.searchText || "").toLowerCase();
+            const side = card.dataset.side || "";
+
+            const matchesSearch = !keyword || searchText.includes(keyword);
+            const matchesSide =
+                currentSideFilter === "all" || side === currentSideFilter;
+
+            if (matchesSearch && matchesSide) {
+                card.style.display = "";
+                visibleCards.push(card);
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        visibleCards.sort((a, b) => {
+            const sideA = getSideOrder(a.dataset.side);
+            const sideB = getSideOrder(b.dataset.side);
+
+            const envelopeA = parseInt(a.dataset.envelope || "0", 10);
+            const envelopeB = parseInt(b.dataset.envelope || "0", 10);
+
+            const amountA = parseInt(a.dataset.amount || "0", 10);
+            const amountB = parseInt(b.dataset.amount || "0", 10);
+
+            const ticketA = parseInt(a.dataset.ticket || "0", 10);
+            const ticketB = parseInt(b.dataset.ticket || "0", 10);
+
+            const relationA = a.dataset.relation || "";
+            const relationB = b.dataset.relation || "";
+
+            if (currentSortType === "amount") {
+                return amountB - amountA || sideA - sideB || envelopeA - envelopeB;
+            }
+
+            if (currentSortType === "relation") {
+                return (
+                    getRelationOrder(relationA) - getRelationOrder(relationB) ||
+                    relationA.localeCompare(relationB, "ko") ||
+                    sideA - sideB ||
+                    envelopeA - envelopeB
+                );
+            }
+
+            if (currentSortType === "ticket") {
+                return ticketB - ticketA || sideA - sideB || envelopeA - envelopeB;
+            }
+
+            return sideA - sideB || envelopeA - envelopeB;
+        });
+
+        if (recordList) {
+            visibleCards.forEach((card) => {
+                recordList.appendChild(card);
+            });
+        }
+
+        if (recordSearchEmpty) {
+            recordSearchEmpty.style.display =
+                visibleCards.length === 0 ? "block" : "none";
+        }
+    }
+
+    if (recordSearchInput) {
+        recordSearchInput.addEventListener("input", applyRecordView);
+    }
+
+    sideFilterButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+            currentSideFilter = button.dataset.sideFilter;
+
+            sideFilterButtons.forEach((otherButton) => {
+                otherButton.classList.remove("active");
+            });
+
+            button.classList.add("active");
+            applyRecordView();
+        });
+    });
+
+    sortButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+            currentSortType = button.dataset.sortType;
+
+            sortButtons.forEach((otherButton) => {
+                otherButton.classList.remove("active");
+            });
+
+            button.classList.add("active");
+            applyRecordView();
+        });
+    });
+
+    // ⋮ 메뉴는 한 번에 하나만 열리도록 처리
+    document.querySelectorAll(".record-menu").forEach((menu) => {
+        menu.addEventListener("toggle", function () {
+            if (!menu.open) {
+                return;
+            }
+
+            document.querySelectorAll(".record-menu").forEach((otherMenu) => {
+                if (otherMenu !== menu) {
+                    otherMenu.open = false;
+                }
+            });
+        });
+    });
+
+    // 메뉴 바깥을 누르면 열린 메뉴 닫기
+    document.addEventListener("click", function (event) {
+        if (event.target.closest(".record-menu")) {
+            return;
+        }
+
+        document.querySelectorAll(".record-menu").forEach((menu) => {
+            menu.open = false;
+        });
+    });
+
+    applyRecordView();
+</script>
+{% endblock %}

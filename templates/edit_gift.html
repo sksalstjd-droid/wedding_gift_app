@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="edit-page">
+    <div class="edit-header">
+        <a href="{{ url_for('records_page') }}" class="edit-back-link">
+            <i class="bi bi-chevron-left"></i>
+            내역으로
+        </a>
+
+        <h2 class="edit-title">축의금 수정</h2>
+        <p class="edit-subtitle">
+            #{{ gift.envelope_no }} {{ gift.name }}님의 입력 정보를 수정합니다.
+        </p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="edit-flash-list">
+                {% for category, message in messages %}
+                    <div class="edit-flash-message {{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" class="edit-form" autocomplete="off">
+        <div class="form-card edit-form-card">
+            <div class="edit-field">
+                <span>봉투번호</span>
+                <input
+                    type="number"
+                    name="envelope_no"
+                    value="{{ gift.envelope_no }}"
+                    min="1"
+                    required
+                >
+            </div>
+
+            <div class="edit-field">
+                <span>이름</span>
+                <input
+                    type="text"
+                    name="name"
+                    value="{{ gift.name }}"
+                    required
+                >
+            </div>
+
+            <div class="edit-field">
+                <span>구분</span>
+
+                <div class="edit-side-row">
+                    <input
+                        type="radio"
+                        id="edit_side_bride"
+                        name="side"
+                        value="신부측"
+                        {% if gift.side == '신부측' %}checked{% endif %}
+                    >
+                    <label for="edit_side_bride">♥ 신부측</label>
+
+                    <input
+                        type="radio"
+                        id="edit_side_groom"
+                        name="side"
+                        value="신랑측"
+                        {% if gift.side == '신랑측' %}checked{% endif %}
+                    >
+                    <label for="edit_side_groom">♡ 신랑측</label>
+                </div>
+            </div>
+
+            <div class="edit-field">
+                <span>금액</span>
+                <div class="edit-money-row">
+                    <input
+                        type="number"
+                        name="amount"
+                        value="{{ gift.amount // 10000 }}"
+                        min="1"
+                        required
+                    >
+                    <strong>만원</strong>
+                </div>
+            </div>
+
+            <div class="edit-field">
+                <span>식권</span>
+
+                <div class="edit-ticket-control">
+                    <button type="button" class="edit-ticket-btn" id="editTicketMinus">
+                        −
+                    </button>
+
+                    <input
+                        type="number"
+                        id="editTicketInput"
+                        name="meal_ticket_count"
+                        value="{{ gift.meal_ticket_count }}"
+                        min="0"
+                        required
+                        readonly
+                    >
+
+                    <button type="button" class="edit-ticket-btn" id="editTicketPlus">
+                        +
+                    </button>
+                </div>
+            </div>
+
+            <div class="edit-field wide-field">
+                <span>관계</span>
+
+                <div class="edit-relation-grid">
+                    {% for option in relation_options %}
+                        <input
+                            type="radio"
+                            id="edit_relation_{{ loop.index }}"
+                            name="relation"
+                            value="{{ option }}"
+                            {% if gift.relation == option %}checked{% endif %}
+                        >
+                        <label for="edit_relation_{{ loop.index }}">
+                            {{ option }}
+                        </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="edit-field wide-field">
+                <span>관계 직접입력</span>
+                <input
+                    type="text"
+                    name="relation_custom"
+                    value="{% if gift.relation and gift.relation not in relation_options %}{{ gift.relation }}{% endif %}"
+                    placeholder="기타 관계를 직접 입력"
+                >
+            </div>
+
+            <div class="edit-field wide-field">
+                <span>메모</span>
+                <textarea
+                    name="memo"
+                    rows="3"
+                    placeholder="메모 입력"
+                >{{ gift.memo or '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="edit-submit-row">
+            <a href="{{ url_for('records_page') }}" class="edit-cancel-button">
+                취소
+            </a>
+
+            <button type="submit" class="edit-save-button">
+                <i class="bi bi-check-circle-fill"></i>
+                수정 저장
+            </button>
+        </div>
+    </form>
+</section>
+
+<script>
+    // 관계 버튼: 선택된 버튼을 다시 누르면 선택 해제
+    document.querySelectorAll(".edit-relation-grid label").forEach((label) => {
+        label.addEventListener("click", function (event) {
+            const radioId = label.getAttribute("for");
+            const radio = document.getElementById(radioId);
+
+            if (!radio) {
+                return;
+            }
+
+            if (radio.checked) {
+                event.preventDefault();
+                radio.checked = false;
+            }
+        });
+    });
+
+    // 식권 - / + 버튼
+    const editTicketInput = document.getElementById("editTicketInput");
+    const editTicketMinus = document.getElementById("editTicketMinus");
+    const editTicketPlus = document.getElementById("editTicketPlus");
+
+    function changeEditTicket(delta) {
+        if (!editTicketInput) {
+            return;
+        }
+
+        const currentValue = parseInt(editTicketInput.value || "0", 10);
+        const nextValue = Math.max(0, currentValue + delta);
+        editTicketInput.value = nextValue;
+    }
+
+    if (editTicketMinus) {
+        editTicketMinus.addEventListener("click", function () {
+            changeEditTicket(-1);
+        });
+    }
+
+    if (editTicketPlus) {
+        editTicketPlus.addEventListener("click", function () {
+            changeEditTicket(1);
+        });
+    }
+</script>
+{% endblock %}

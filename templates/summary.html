@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="page-card">
+  <h1 class="page-title">요약</h1>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <i class="bi bi-cash-coin"></i>
+      <span>총 금액</span>
+      <strong>{{ '{:,}'.format(summary.total_amount) }}원</strong>
+    </div>
+    <div class="summary-card">
+      <i class="bi bi-people"></i>
+      <span>총 인원</span>
+      <strong>{{ summary.total_count }}명</strong>
+    </div>
+    <div class="summary-card">
+      <i class="bi bi-ticket-perforated"></i>
+      <span>총 식권</span>
+      <strong>{{ summary.total_tickets }}장</strong>
+    </div>
+    <div class="summary-card">
+      <i class="bi bi-calculator"></i>
+      <span>평균 금액</span>
+      <strong>{{ '{:,}'.format(summary.average_amount) }}원</strong>
+    </div>
+  </div>
+</section>
+
+<section class="page-card small-card">
+  <h2 class="section-title">구분별 요약</h2>
+  <div class="side-summary">
+    <div>
+      <strong>신부측</strong>
+      <span>{{ summary.bride_count }}명 · {{ '{:,}'.format(summary.bride_amount) }}원 · 식권 {{ summary.bride_tickets }}장</span>
+    </div>
+    <div>
+      <strong>신랑측</strong>
+      <span>{{ summary.groom_count }}명 · {{ '{:,}'.format(summary.groom_amount) }}원 · 식권 {{ summary.groom_tickets }}장</span>
+    </div>
+  </div>
+</section>
+{% endblock %}
