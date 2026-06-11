@@ -2,6 +2,18 @@
 
 {% block content %}
     <section class="records-page">
+    {% set flash_messages = get_flashed_messages(with_categories=true) %}
+
+    {% if flash_messages %}
+        <div class="records-toast-area">
+            {% for category, message in flash_messages %}
+                <div class="records-toast-message records-toast-{{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div class="records-control-card">
         <div class="records-top-line">
             <h2 class="records-title">전체 내역</h2>

@@ -2,6 +2,60 @@
     padding-bottom: 96px;
 }
 
+.records-toast-area {
+    position: fixed;
+    left: max(14px, calc((100vw - 520px) / 2 + 14px));
+    right: max(14px, calc((100vw - 520px) / 2 + 14px));
+    bottom: 84px;
+    z-index: 80;
+    pointer-events: none;
+}
+
+.records-toast-message {
+    padding: 9px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 900;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(80, 50, 40, 0.14);
+    animation: recordsToastFadeOut 2.6s ease forwards;
+}
+
+.records-toast-success {
+    border: 1px solid #c9efd3;
+    background: #eaf8ee;
+    color: var(--success);
+}
+
+.records-toast-error {
+    border: 1px solid #ffd3d3;
+    background: #fff0f0;
+    color: var(--danger);
+}
+
+@keyframes recordsToastFadeOut {
+    0% {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    12% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    78% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(6px);
+        visibility: hidden;
+    }
+}
+
 .records-control-card {
     background: #fff;
     border: 1px solid var(--line);

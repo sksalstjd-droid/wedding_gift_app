@@ -2,11 +2,11 @@ from datetime import datetime
 from io import BytesIO
 from types import SimpleNamespace
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file, jsonify
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
-from models import db, Event, Gift
+from models import db, Event, Gift, RelationshipCategory
 from config import Config
 
 
@@ -30,6 +30,8 @@ RELATION_ORDER = {
     "기타": 6,
 }
 
+DEFAULT_RELATION_OPTIONS = ["가족", "친척", "친구", "직장", "지인", "기타"]
+
 
 def get_side_order(side):
     return SIDE_ORDER.get(side, 9)
@@ -40,6 +42,60 @@ def get_relation_order(relation):
         return 999
 
     return RELATION_ORDER.get(relation, 100)
+
+
+def get_custom_relation_categories(event_id):
+    return (
+        RelationshipCategory.query
+        .filter(RelationshipCategory.event_id == event_id)
+        .order_by(
+            RelationshipCategory.sort_order.asc(),
+            RelationshipCategory.created_at.asc(),
+            RelationshipCategory.id.asc(),
+        )
+        .all()
+    )
+
+
+def get_relation_options(event_id):
+    custom_categories = get_custom_relation_categories(event_id)
+    custom_names = [
+        category.name
+        for category in custom_categories
+        if category.name not in DEFAULT_RELATION_OPTIONS
+    ]
+
+    return DEFAULT_RELATION_OPTIONS + custom_names
+
+
+def save_custom_relation_category(event_id, relation):
+    relation_name = (relation or "").strip()
+
+    if not relation_name or relation_name in DEFAULT_RELATION_OPTIONS:
+        return
+
+    existing_category = RelationshipCategory.query.filter(
+        RelationshipCategory.event_id == event_id,
+        RelationshipCategory.name == relation_name,
+    ).first()
+
+    if existing_category:
+        return
+
+    max_sort_order = (
+        db.session.query(db.func.max(RelationshipCategory.sort_order))
+        .filter(RelationshipCategory.event_id == event_id)
+        .scalar()
+    )
+    next_sort_order = (max_sort_order or 0) + 1
+
+    db.session.add(
+        RelationshipCategory(
+            event_id=event_id,
+            name=relation_name,
+            sort_order=next_sort_order,
+        )
+    )
 
 
 def sort_gifts_by_side_and_envelope(gifts):
@@ -396,6 +452,83 @@ def get_records_return_url():
     return url_for("records_page")
 
 
+def get_relationship_category_or_404(category_id, event_id):
+    return RelationshipCategory.query.filter(
+        RelationshipCategory.id == category_id,
+        RelationshipCategory.event_id == event_id,
+    ).first()
+
+
+def get_relationship_category_usage_count(event_id, relation_name):
+    return Gift.query.filter(
+        Gift.event_id == event_id,
+        Gift.relation == relation_name,
+        Gift.deleted_at.is_(None),
+    ).count()
+
+
+@app.route("/relationship-categories/<int:category_id>/delete-status")
+def relationship_category_delete_status(category_id):
+    event = get_or_create_default_event()
+    category = get_relationship_category_or_404(category_id, event.id)
+
+    if category is None:
+        return jsonify({
+            "success": False,
+            "message": "이미 삭제되었거나 찾을 수 없는 관계입니다.",
+        }), 404
+
+    active_usage_count = get_relationship_category_usage_count(event.id, category.name)
+
+    if active_usage_count > 0:
+        return jsonify({
+            "success": False,
+            "message": (
+                f'"{category.name}" 관계는 현재 {active_usage_count}건의 내역에서 '
+                "사용 중입니다.\n해당 내역의 관계를 먼저 변경한 뒤 삭제할 수 있습니다."
+            ),
+            "usage_count": active_usage_count,
+        }), 409
+
+    return jsonify({
+        "success": True,
+        "message": "삭제할 수 있는 관계입니다.",
+        "usage_count": 0,
+    })
+
+
+@app.route("/relationship-categories/<int:category_id>/delete", methods=["POST"])
+def delete_relationship_category(category_id):
+    event = get_or_create_default_event()
+    category = get_relationship_category_or_404(category_id, event.id)
+
+    if category is None:
+        return jsonify({
+            "success": False,
+            "message": "이미 삭제되었거나 찾을 수 없는 관계입니다.",
+        }), 404
+
+    active_usage_count = get_relationship_category_usage_count(event.id, category.name)
+
+    if active_usage_count > 0:
+        return jsonify({
+            "success": False,
+            "message": (
+                f'"{category.name}" 관계는 현재 {active_usage_count}건의 내역에서 '
+                "사용 중입니다.\n해당 내역의 관계를 먼저 변경한 뒤 삭제할 수 있습니다."
+            ),
+            "usage_count": active_usage_count,
+        }), 409
+
+    db.session.delete(category)
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "message": f'"{category.name}" 관계를 삭제했습니다.',
+    })
+
+
 @app.route("/gifts/<int:gift_id>/edit", methods=["GET", "POST"])
 def edit_gift(gift_id):
     event = get_or_create_default_event()
@@ -407,13 +540,16 @@ def edit_gift(gift_id):
         Gift.deleted_at.is_(None),
     ).first_or_404()
 
-    relation_options = ["가족", "친척", "친구", "직장", "지인", "기타"]
+    custom_relation_categories = get_custom_relation_categories(event.id)
+    relation_options = get_relation_options(event.id)
 
     def render_edit_form():
         return render_template(
             "edit_gift.html",
             event=event,
             gift=gift,
+            default_relation_options=DEFAULT_RELATION_OPTIONS,
+            custom_relation_categories=custom_relation_categories,
             relation_options=relation_options,
             return_url=return_url,
         )
@@ -430,6 +566,7 @@ def edit_gift(gift_id):
 
         if relation_custom:
             relation = relation_custom
+        relation = relation.strip()
 
         if not envelope_no_raw:
             flash("봉투번호를 입력해주세요.", "error")
@@ -488,6 +625,7 @@ def edit_gift(gift_id):
         gift.memo = memo
         gift.updated_at = datetime.now()
 
+        save_custom_relation_category(event.id, relation)
         db.session.commit()
 
         flash(f"{gift.side} #{gift.envelope_no} {gift.name} 내역이 수정되었습니다.", "success")

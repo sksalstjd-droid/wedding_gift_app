@@ -45,3 +45,16 @@ class Gift(db.Model):
 
     # 실제 삭제 대신 deleted_at만 기록하는 소프트 삭제 방식입니다.
     deleted_at = db.Column(db.DateTime, nullable=True)
+
+
+class RelationshipCategory(db.Model):
+    __tablename__ = "relationship_categories"
+    __table_args__ = (
+        db.UniqueConstraint("event_id", "name", name="uq_relationship_category_event_name"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey("events.id"), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    sort_order = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.now)

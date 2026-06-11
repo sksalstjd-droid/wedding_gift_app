@@ -140,6 +140,12 @@
     font-weight: 900;
 }
 
+.edit-relation-grid label[data-custom-relation="1"] {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
 .edit-side-row label {
     padding: 12px 8px;
 }
@@ -167,6 +173,31 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 8px;
+}
+
+.edit-relation-add-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 46px;
+    align-items: center;
+    gap: 8px;
+}
+
+.edit-relation-add-button {
+    width: 46px;
+    height: 46px;
+    border: 1px solid rgba(214, 93, 141, 0.34);
+    border-radius: 14px;
+    background: #fff6f9;
+    color: var(--primary-dark);
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.edit-relation-add-button:active {
+    transform: translateY(1px);
+    background: var(--primary-soft);
 }
 
 .edit-field.wide-field {
@@ -215,6 +246,54 @@
         var(--bg) 78%,
         rgba(255, 247, 249, 0) 100%
     );
+}
+
+.edit-toast-area {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 64px;
+    z-index: 70;
+    pointer-events: none;
+}
+
+.edit-toast-message {
+    padding: 9px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 900;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(80, 50, 40, 0.14);
+    animation: editToastFadeOut 2.6s ease forwards;
+}
+
+.edit-toast-success {
+    border: 1px solid #c9efd3;
+    background: #eaf8ee;
+    color: var(--success);
+}
+
+@keyframes editToastFadeOut {
+    0% {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    12% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    78% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(6px);
+        visibility: hidden;
+    }
 }
 
 .edit-cancel-button,

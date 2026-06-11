@@ -2,6 +2,8 @@
 
 {% block content %}
 <section class="edit-page">
+    {% set flash_messages = get_flashed_messages(with_categories=true) %}
+
     <div class="edit-header">
         <a href="{{ return_url or url_for('records_page') }}" class="edit-back-link">
             <i class="bi bi-chevron-left"></i>
@@ -14,17 +16,26 @@
         </p>
     </div>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
+    {% if flash_messages %}
+        {% set error_flash = namespace(has_message=false) %}
+        {% for category, message in flash_messages %}
+            {% if category != 'success' %}
+                {% set error_flash.has_message = true %}
+            {% endif %}
+        {% endfor %}
+
+        {% if error_flash.has_message %}
             <div class="edit-flash-list">
-                {% for category, message in messages %}
-                    <div class="edit-flash-message {{ category }}">
-                        {{ message }}
-                    </div>
+                {% for category, message in flash_messages %}
+                    {% if category != 'success' %}
+                        <div class="edit-flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         {% endif %}
-    {% endwith %}
+    {% endif %}
 
     <form
         method="POST"
@@ -119,12 +130,13 @@
             <div class="edit-field wide-field">
                 <span>관계</span>
 
-                <div class="edit-relation-grid">
-                    {% for option in relation_options %}
+                <div class="edit-relation-grid" id="editRelationGrid">
+                    {% for option in default_relation_options %}
                         <input
                             type="radio"
                             id="edit_relation_{{ loop.index }}"
                             name="relation"
+                            class="edit-relation-radio"
                             value="{{ option }}"
                             {% if gift.relation == option %}checked{% endif %}
                         >
@@ -132,17 +144,49 @@
                             {{ option }}
                         </label>
                     {% endfor %}
+
+                    {% for category in custom_relation_categories %}
+                        <input
+                            type="radio"
+                            id="edit_relation_custom_{{ category.id }}"
+                            name="relation"
+                            class="edit-relation-radio"
+                            value="{{ category.name }}"
+                            {% if gift.relation == category.name %}checked{% endif %}
+                        >
+                        <label
+                            for="edit_relation_custom_{{ category.id }}"
+                            data-custom-relation="1"
+                            data-category-id="{{ category.id }}"
+                            data-check-url="{{ url_for('relationship_category_delete_status', category_id=category.id) }}"
+                            data-delete-url="{{ url_for('delete_relationship_category', category_id=category.id) }}"
+                        >
+                            {{ category.name }}
+                        </label>
+                    {% endfor %}
                 </div>
             </div>
 
             <div class="edit-field wide-field">
-                <span>관계 직접입력</span>
-                <input
-                    type="text"
-                    name="relation_custom"
-                    value="{% if gift.relation and gift.relation not in relation_options %}{{ gift.relation }}{% endif %}"
-                    placeholder="기타 관계를 직접 입력"
-                >
+                <span>관계 추가</span>
+
+                <div class="edit-relation-add-row">
+                    <input
+                        type="text"
+                        id="editRelationCustomInput"
+                        name="relation_custom"
+                        value="{% if gift.relation and gift.relation not in relation_options %}{{ gift.relation }}{% endif %}"
+                        placeholder="추가할 관계 입력   예) 동아리"
+                    >
+                    <button
+                        type="button"
+                        class="edit-relation-add-button"
+                        id="editRelationAddButton"
+                        aria-label="관계 추가"
+                    >
+                        +
+                    </button>
+                </div>
             </div>
 
             <div class="edit-field wide-field">
@@ -156,6 +200,27 @@
         </div>
 
         <div class="edit-submit-row">
+            {% if flash_messages %}
+                {% set success_flash = namespace(has_message=false) %}
+                {% for category, message in flash_messages %}
+                    {% if category == 'success' %}
+                        {% set success_flash.has_message = true %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if success_flash.has_message %}
+                    <div class="edit-toast-area">
+                        {% for category, message in flash_messages %}
+                            {% if category == 'success' %}
+                                <div class="edit-toast-message edit-toast-success">
+                                    {{ message }}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endif %}
+
             <a href="{{ return_url or url_for('records_page') }}" class="edit-cancel-button">
                 취소
             </a>
@@ -169,9 +234,242 @@
 </section>
 
 <script>
-    // 관계 버튼: 선택된 버튼을 다시 누르면 선택 해제
-    document.querySelectorAll(".edit-relation-grid label").forEach((label) => {
-        label.addEventListener("click", function (event) {
+    const editRelationGrid = document.getElementById("editRelationGrid");
+    const editRelationCustomInput = document.getElementById("editRelationCustomInput");
+    const editRelationAddButton = document.getElementById("editRelationAddButton");
+    const relationLongPressDuration = 1200;
+    let relationLongPressTimer = null;
+    let relationLongPressLabel = null;
+
+    function getRelationRadios() {
+        return Array.from(document.querySelectorAll(".edit-relation-radio"));
+    }
+
+    function clearRelationRadios() {
+        getRelationRadios().forEach((radio) => {
+            radio.checked = false;
+        });
+    }
+
+    function clearRelationCustomInput() {
+        if (editRelationCustomInput) {
+            editRelationCustomInput.value = "";
+        }
+    }
+
+    function selectRelationRadio(radio) {
+        if (!radio) {
+            return;
+        }
+
+        radio.checked = true;
+        clearRelationCustomInput();
+    }
+
+    function createTemporaryRelationOption(relationName) {
+        const optionId = `edit_relation_custom_${Date.now()}`;
+        const radio = document.createElement("input");
+        const label = document.createElement("label");
+
+        radio.type = "radio";
+        radio.id = optionId;
+        radio.name = "relation";
+        radio.className = "edit-relation-radio";
+        radio.value = relationName;
+        radio.checked = true;
+
+        label.setAttribute("for", optionId);
+        label.dataset.customRelation = "1";
+        label.dataset.temporaryRelation = "1";
+        label.textContent = relationName;
+
+        editRelationGrid.appendChild(radio);
+        editRelationGrid.appendChild(label);
+
+        return radio;
+    }
+
+    function applyAddedRelation() {
+        if (!editRelationCustomInput) {
+            return;
+        }
+
+        const relationName = editRelationCustomInput.value.trim();
+
+        if (!relationName) {
+            editRelationCustomInput.focus();
+            return;
+        }
+
+        const existingRadio = getRelationRadios().find((radio) => {
+            return radio.value === relationName;
+        });
+
+        if (existingRadio) {
+            selectRelationRadio(existingRadio);
+            return;
+        }
+
+        clearRelationRadios();
+        createTemporaryRelationOption(relationName);
+        clearRelationCustomInput();
+    }
+
+    function getRadioByLabel(label) {
+        const radioId = label.getAttribute("for");
+        return radioId ? document.getElementById(radioId) : null;
+    }
+
+    function removeRelationOption(label) {
+        const radio = getRadioByLabel(label);
+
+        if (radio && radio.checked) {
+            radio.checked = false;
+        }
+
+        if (radio) {
+            radio.remove();
+        }
+
+        label.remove();
+        clearRelationCustomInput();
+    }
+
+    async function deleteSavedRelation(label) {
+        const relationName = label.textContent.trim();
+        const checkUrl = label.dataset.checkUrl;
+        const deleteUrl = label.dataset.deleteUrl;
+
+        if (!checkUrl || !deleteUrl) {
+            return;
+        }
+
+        let statusResponse;
+        let statusResult;
+
+        try {
+            statusResponse = await fetch(checkUrl, {
+                headers: {
+                    "Accept": "application/json",
+                },
+            });
+            statusResult = await statusResponse.json();
+        } catch (error) {
+            alert("관계를 삭제하는 중 오류가 발생했습니다. 다시 시도해 주세요.");
+            return;
+        }
+
+        if (!statusResponse.ok || !statusResult.success) {
+            alert(statusResult.message || "현재 이 관계를 삭제할 수 없습니다.");
+            return;
+        }
+
+        const shouldDelete = confirm(
+            `"${relationName}" 관계를 삭제할까요?\n삭제하면 수정 화면의 관계 버튼 목록에서 사라집니다.`
+        );
+
+        if (!shouldDelete) {
+            return;
+        }
+
+        let response;
+        let result;
+
+        try {
+            response = await fetch(deleteUrl, {
+                method: "POST",
+                headers: {
+                    "Accept": "application/json",
+                },
+            });
+            result = await response.json();
+        } catch (error) {
+            alert("관계를 삭제하는 중 오류가 발생했습니다. 다시 시도해 주세요.");
+            return;
+        }
+
+        if (!response.ok || !result.success) {
+            alert(result.message || "현재 이 관계를 삭제할 수 없습니다.");
+            return;
+        }
+
+        removeRelationOption(label);
+    }
+
+    function handleRelationLongPress(label) {
+        const relationName = label.textContent.trim();
+        const isTemporaryRelation = label.dataset.temporaryRelation === "1";
+        label.dataset.longPressHandled = "1";
+        window.setTimeout(() => {
+            if (label.dataset.longPressHandled === "1") {
+                label.dataset.longPressHandled = "";
+            }
+        }, 700);
+
+        if (isTemporaryRelation) {
+            removeRelationOption(label);
+            return;
+        }
+
+        deleteSavedRelation(label);
+    }
+
+    function startRelationLongPress(label) {
+        if (!label || label.dataset.customRelation !== "1") {
+            return;
+        }
+
+        clearRelationLongPress();
+        relationLongPressLabel = label;
+        relationLongPressTimer = window.setTimeout(() => {
+            relationLongPressTimer = null;
+            handleRelationLongPress(label);
+        }, relationLongPressDuration);
+    }
+
+    function clearRelationLongPress() {
+        if (relationLongPressTimer) {
+            window.clearTimeout(relationLongPressTimer);
+            relationLongPressTimer = null;
+        }
+
+        relationLongPressLabel = null;
+    }
+
+    if (editRelationGrid) {
+        editRelationGrid.addEventListener("pointerdown", function (event) {
+            const label = event.target.closest("label[data-custom-relation='1']");
+
+            if (!label || !editRelationGrid.contains(label)) {
+                return;
+            }
+
+            startRelationLongPress(label);
+        });
+
+        ["pointerup", "pointerleave", "pointercancel"].forEach((eventName) => {
+            editRelationGrid.addEventListener(eventName, clearRelationLongPress);
+        });
+
+        editRelationGrid.addEventListener("contextmenu", function (event) {
+            if (event.target.closest("label[data-custom-relation='1']")) {
+                event.preventDefault();
+            }
+        });
+
+        editRelationGrid.addEventListener("click", function (event) {
+            const label = event.target.closest("label");
+
+            if (!label || !editRelationGrid.contains(label)) {
+                return;
+            }
+
+            if (label.dataset.longPressHandled === "1") {
+                event.preventDefault();
+                label.dataset.longPressHandled = "";
+                return;
+            }
+
             const radioId = label.getAttribute("for");
             const radio = document.getElementById(radioId);
 
@@ -182,9 +480,20 @@
             if (radio.checked) {
                 event.preventDefault();
                 radio.checked = false;
+                return;
             }
+
+            clearRelationCustomInput();
         });
+    }
+
+    getRelationRadios().forEach((radio) => {
+        radio.addEventListener("change", clearRelationCustomInput);
     });
+
+    if (editRelationAddButton) {
+        editRelationAddButton.addEventListener("click", applyAddedRelation);
+    }
 
     // 식권 - / + 버튼
     const editTicketInput = document.getElementById("editTicketInput");
