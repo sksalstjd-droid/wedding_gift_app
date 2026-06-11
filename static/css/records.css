@@ -69,9 +69,9 @@
 
 .records-option-line {
     display: grid;
-    grid-template-columns: 42px 1fr;
+    grid-template-columns: 34px minmax(0, 1fr);
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     margin-top: 7px;
 }
 
@@ -95,8 +95,13 @@
 }
 
 .record-filter-chip,
-.record-sort-chip {
+.record-sort-chip,
+.record-unclassified-chip {
     flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
     border: 1px solid var(--line);
     border-radius: 999px;
     padding: 6px 10px;
@@ -107,11 +112,31 @@
     white-space: nowrap;
 }
 
+.record-filter-chip,
+.record-unclassified-chip {
+    padding-inline: 8px;
+}
+
+.sort-direction-mark {
+    font-size: 11px;
+    line-height: 1;
+}
+
+.sort-direction-mark:empty {
+    display: none;
+}
+
 .record-filter-chip.active,
 .record-sort-chip.active {
     border-color: var(--primary);
     background: var(--primary);
     color: #fff;
+}
+
+.record-unclassified-chip.active {
+    border-color: #d19a37;
+    background: #fff7e7;
+    color: #9b620c;
 }
 
 .record-list {

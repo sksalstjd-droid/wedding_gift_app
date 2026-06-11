@@ -3,7 +3,7 @@
 {% block content %}
 <section class="edit-page">
     <div class="edit-header">
-        <a href="{{ url_for('records_page') }}" class="edit-back-link">
+        <a href="{{ return_url or url_for('records_page') }}" class="edit-back-link">
             <i class="bi bi-chevron-left"></i>
             내역으로
         </a>
@@ -26,7 +26,12 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST" class="edit-form" autocomplete="off">
+    <form
+        method="POST"
+        action="{{ url_for('edit_gift', gift_id=gift.id, return_url=return_url) }}"
+        class="edit-form"
+        autocomplete="off"
+    >
         <div class="form-card edit-form-card">
             <div class="edit-field">
                 <span>봉투번호</span>
@@ -151,7 +156,7 @@
         </div>
 
         <div class="edit-submit-row">
-            <a href="{{ url_for('records_page') }}" class="edit-cancel-button">
+            <a href="{{ return_url or url_for('records_page') }}" class="edit-cancel-button">
                 취소
             </a>
 

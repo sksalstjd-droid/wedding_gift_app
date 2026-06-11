@@ -74,32 +74,32 @@ def get_or_create_default_event():
 
 def get_next_envelope_no(event_id, side):
     """
-    신부측/신랑측 봉투번호를 각각 따로 계산합니다.
+    신부측/신랑측별 active 데이터에서 아직 사용 중이지 않은
+    가장 작은 양의 정수를 다음 봉투번호로 계산합니다.
 
     예:
-    - 신부측 #1, #2, #3
-    - 신랑측 #1, #2, #3
+    - 사용 중: 1, 2, 3 -> 다음: 4
+    - 사용 중: 1, 2, 4 -> 다음: 3
+    - 사용 중: 2, 3, 4 -> 다음: 1
     """
-    session_key = f"next_envelope_no_{side}"
-
-    if session.get(session_key):
-        return session[session_key]
-
-    latest_gift = (
+    used_rows = (
         Gift.query
+        .with_entities(Gift.envelope_no)
         .filter(
             Gift.event_id == event_id,
             Gift.side == side,
             Gift.deleted_at.is_(None),
+            Gift.envelope_no.isnot(None),
         )
-        .order_by(Gift.envelope_no.desc())
-        .first()
+        .all()
     )
+    used_numbers = {envelope_no for (envelope_no,) in used_rows}
 
-    if latest_gift:
-        return latest_gift.envelope_no + 1
+    next_no = 1
+    while next_no in used_numbers:
+        next_no += 1
 
-    return 1
+    return next_no
 
 
 def get_next_envelope_by_side(event_id):
@@ -253,7 +253,7 @@ def input_page():
         db.session.commit()
 
         session["last_side"] = side
-        session[f"next_envelope_no_{side}"] = envelope_no + 1
+        session[f"next_envelope_no_{side}"] = get_next_envelope_no(event.id, side)
 
         flash(f"{side} #{envelope_no} {name}님 입력 완료", "success")
 
@@ -375,7 +375,7 @@ def delete_gift(gift_id):
         gift.deleted_at = datetime.now()
         db.session.commit()
 
-        session[f"next_envelope_no_{gift.side}"] = gift.envelope_no
+        session[f"next_envelope_no_{gift.side}"] = get_next_envelope_no(event.id, gift.side)
 
         flash(f"{gift.side} #{gift.envelope_no} {gift.name}님 삭제 완료", "success")
 
@@ -387,9 +387,19 @@ def delete_gift(gift_id):
     return redirect(url_for("input_page"))
 
 
+def get_records_return_url():
+    return_url = request.values.get("return_url", "").strip()
+
+    if return_url.startswith("/") and not return_url.startswith("//"):
+        return return_url
+
+    return url_for("records_page")
+
+
 @app.route("/gifts/<int:gift_id>/edit", methods=["GET", "POST"])
 def edit_gift(gift_id):
     event = get_or_create_default_event()
+    return_url = get_records_return_url()
 
     gift = Gift.query.filter(
         Gift.id == gift_id,
@@ -398,6 +408,15 @@ def edit_gift(gift_id):
     ).first_or_404()
 
     relation_options = ["가족", "친척", "친구", "직장", "지인", "기타"]
+
+    def render_edit_form():
+        return render_template(
+            "edit_gift.html",
+            event=event,
+            gift=gift,
+            relation_options=relation_options,
+            return_url=return_url,
+        )
 
     if request.method == "POST":
         envelope_no_raw = request.form.get("envelope_no", "").strip()
@@ -414,39 +433,19 @@ def edit_gift(gift_id):
 
         if not envelope_no_raw:
             flash("봉투번호를 입력해주세요.", "error")
-            return render_template(
-                "edit_gift.html",
-                event=event,
-                gift=gift,
-                relation_options=relation_options,
-            )
+            return render_edit_form()
 
         if not name:
             flash("이름을 입력해주세요.", "error")
-            return render_template(
-                "edit_gift.html",
-                event=event,
-                gift=gift,
-                relation_options=relation_options,
-            )
+            return render_edit_form()
 
         if side not in ["신부측", "신랑측"]:
             flash("구분을 다시 선택해주세요.", "error")
-            return render_template(
-                "edit_gift.html",
-                event=event,
-                gift=gift,
-                relation_options=relation_options,
-            )
+            return render_edit_form()
 
         if not amount_raw:
             flash("금액을 입력해주세요.", "error")
-            return render_template(
-                "edit_gift.html",
-                event=event,
-                gift=gift,
-                relation_options=relation_options,
-            )
+            return render_edit_form()
 
         try:
             envelope_no = int(envelope_no_raw)
@@ -454,39 +453,19 @@ def edit_gift(gift_id):
             meal_ticket_count = int(meal_ticket_raw or "0")
         except ValueError:
             flash("봉투번호, 금액, 식권은 숫자로 입력해주세요.", "error")
-            return render_template(
-                "edit_gift.html",
-                event=event,
-                gift=gift,
-                relation_options=relation_options,
-            )
+            return render_edit_form()
 
         if envelope_no <= 0:
             flash("봉투번호는 1 이상이어야 합니다.", "error")
-            return render_template(
-                "edit_gift.html",
-                event=event,
-                gift=gift,
-                relation_options=relation_options,
-            )
+            return render_edit_form()
 
         if amount_man <= 0:
             flash("금액은 1만원 이상이어야 합니다.", "error")
-            return render_template(
-                "edit_gift.html",
-                event=event,
-                gift=gift,
-                relation_options=relation_options,
-            )
+            return render_edit_form()
 
         if meal_ticket_count < 0:
             flash("식권 수는 0 이상이어야 합니다.", "error")
-            return render_template(
-                "edit_gift.html",
-                event=event,
-                gift=gift,
-                relation_options=relation_options,
-            )
+            return render_edit_form()
 
         duplicated_gift = Gift.query.filter(
             Gift.event_id == event.id,
@@ -498,12 +477,7 @@ def edit_gift(gift_id):
 
         if duplicated_gift:
             flash(f"{side} #{envelope_no} 봉투번호는 이미 사용 중입니다.", "error")
-            return render_template(
-                "edit_gift.html",
-                event=event,
-                gift=gift,
-                relation_options=relation_options,
-            )
+            return render_edit_form()
 
         gift.envelope_no = envelope_no
         gift.name = name
@@ -517,14 +491,9 @@ def edit_gift(gift_id):
         db.session.commit()
 
         flash(f"{gift.side} #{gift.envelope_no} {gift.name} 내역이 수정되었습니다.", "success")
-        return redirect(url_for("records_page"))
+        return redirect(return_url)
 
-    return render_template(
-        "edit_gift.html",
-        event=event,
-        gift=gift,
-        relation_options=relation_options,
-    )
+    return render_edit_form()
 
 
 @app.route("/reset-all", methods=["POST"])

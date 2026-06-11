@@ -31,6 +31,15 @@
                 <button type="button" class="record-filter-chip" data-side-filter="신랑측">
                     신랑측
                 </button>
+                <button
+                    type="button"
+                    class="record-unclassified-chip"
+                    id="unclassifiedFilterButton"
+                    data-unclassified-filter="1"
+                    aria-pressed="false"
+                >
+                    관계 미분류
+                </button>
             </div>
         </div>
 
@@ -39,16 +48,20 @@
 
             <div class="records-chip-group">
                 <button type="button" class="record-sort-chip active" data-sort-type="envelope">
-                    봉투순
+                    <span>봉투순</span>
+                    <span class="sort-direction-mark"></span>
                 </button>
                 <button type="button" class="record-sort-chip" data-sort-type="amount">
-                    금액순
+                    <span>금액순</span>
+                    <span class="sort-direction-mark"></span>
                 </button>
                 <button type="button" class="record-sort-chip" data-sort-type="relation">
-                    관계순
+                    <span>관계순</span>
+                    <span class="sort-direction-mark"></span>
                 </button>
                 <button type="button" class="record-sort-chip" data-sort-type="ticket">
-                    식권순
+                    <span>식권순</span>
+                    <span class="sort-direction-mark"></span>
                 </button>
             </div>
         </div>
@@ -84,6 +97,8 @@
                                     <a
                                         href="{{ url_for('edit_gift', gift_id=gift.id) }}"
                                         class="record-menu-item"
+                                        data-edit-link
+                                        data-base-edit-url="{{ url_for('edit_gift', gift_id=gift.id) }}"
                                     >
                                         <i class="bi bi-pencil"></i>
                                         수정
@@ -110,7 +125,7 @@
                                 {{ gift.side }}
                             </span>
 
-                            <span>{{ gift.relation or '관계 없음' }}</span>
+                            <span>{{ gift.relation.strip() if gift.relation and gift.relation.strip() else '관계 미분류' }}</span>
 
                             {% if gift.memo %}
                                 <span>메모 있음</span>
@@ -145,9 +160,19 @@
 
     const sideFilterButtons = document.querySelectorAll("[data-side-filter]");
     const sortButtons = document.querySelectorAll("[data-sort-type]");
+    const unclassifiedFilterButton = document.getElementById("unclassifiedFilterButton");
 
     let currentSideFilter = "all";
     let currentSortType = "envelope";
+    let currentSortDirection = "asc";
+    let unclassifiedOnly = false;
+
+    const defaultSortDirections = {
+        envelope: "asc",
+        amount: "desc",
+        relation: "asc",
+        ticket: "desc",
+    };
 
     const relationOrder = {
         "가족": 1,
@@ -178,6 +203,106 @@
         return relationOrder[relation] || 100;
     }
 
+    function isValidSideFilter(sideFilter) {
+        return ["all", "신부측", "신랑측"].includes(sideFilter);
+    }
+
+    function isValidSortType(sortType) {
+        return Object.prototype.hasOwnProperty.call(defaultSortDirections, sortType);
+    }
+
+    function normalizeRelation(relation) {
+        return (relation || "").trim();
+    }
+
+    function isUnclassifiedRelation(relation) {
+        const normalizedRelation = normalizeRelation(relation);
+        return normalizedRelation === "" || normalizedRelation === "기타";
+    }
+
+    function getRecordsStatePath() {
+        const params = new URLSearchParams();
+        const keyword = recordSearchInput ? recordSearchInput.value.trim() : "";
+
+        if (keyword) {
+            params.set("q", keyword);
+        }
+
+        if (currentSideFilter !== "all") {
+            params.set("side", currentSideFilter);
+        }
+
+        if (unclassifiedOnly) {
+            params.set("unclassified", "1");
+        }
+
+        if (currentSortType !== "envelope") {
+            params.set("sort", currentSortType);
+        }
+
+        if (currentSortDirection !== defaultSortDirections[currentSortType]) {
+            params.set("direction", currentSortDirection);
+        }
+
+        const queryString = params.toString();
+        return queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+    }
+
+    function updateEditReturnUrls() {
+        const returnUrl = getRecordsStatePath();
+
+        document.querySelectorAll("[data-edit-link]").forEach((link) => {
+            const editUrl = new URL(link.dataset.baseEditUrl, window.location.origin);
+            editUrl.searchParams.set("return_url", returnUrl);
+            link.href = `${editUrl.pathname}${editUrl.search}`;
+        });
+    }
+
+    function syncRecordsUrl() {
+        const statePath = getRecordsStatePath();
+        window.history.replaceState(null, "", statePath);
+        updateEditReturnUrls();
+    }
+
+    function restoreRecordsStateFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const sideFilter = params.get("side") || "all";
+        const sortType = params.get("sort") || "envelope";
+        const sortDirection = params.get("direction") || defaultSortDirections[sortType] || "asc";
+
+        currentSideFilter = isValidSideFilter(sideFilter) ? sideFilter : "all";
+        currentSortType = isValidSortType(sortType) ? sortType : "envelope";
+        currentSortDirection = ["asc", "desc"].includes(sortDirection)
+            ? sortDirection
+            : defaultSortDirections[currentSortType] || "asc";
+        unclassifiedOnly = params.get("unclassified") === "1";
+
+        if (recordSearchInput) {
+            recordSearchInput.value = params.get("q") || "";
+        }
+    }
+
+    function updateSideFilterButtons() {
+        sideFilterButtons.forEach((button) => {
+            button.classList.toggle(
+                "active",
+                button.dataset.sideFilter === currentSideFilter
+            );
+        });
+    }
+
+    function updateUnclassifiedButton() {
+        if (!unclassifiedFilterButton) {
+            return;
+        }
+
+        unclassifiedFilterButton.classList.toggle("active", unclassifiedOnly);
+        unclassifiedFilterButton.setAttribute(
+            "aria-pressed",
+            unclassifiedOnly ? "true" : "false"
+        );
+    }
+
     function applyRecordView() {
         const keyword = recordSearchInput
             ? recordSearchInput.value.trim().toLowerCase()
@@ -188,12 +313,15 @@
         recordCards.forEach((card) => {
             const searchText = (card.dataset.searchText || "").toLowerCase();
             const side = card.dataset.side || "";
+            const relation = card.dataset.relation || "";
 
             const matchesSearch = !keyword || searchText.includes(keyword);
             const matchesSide =
                 currentSideFilter === "all" || side === currentSideFilter;
+            const matchesUnclassified =
+                !unclassifiedOnly || isUnclassifiedRelation(relation);
 
-            if (matchesSearch && matchesSide) {
+            if (matchesSearch && matchesSide && matchesUnclassified) {
                 card.style.display = "";
                 visibleCards.push(card);
             } else {
@@ -217,24 +345,24 @@
             const relationA = a.dataset.relation || "";
             const relationB = b.dataset.relation || "";
 
-            if (currentSortType === "amount") {
-                return amountB - amountA || sideA - sideB || envelopeA - envelopeB;
-            }
+            let sortResult = 0;
 
-            if (currentSortType === "relation") {
-                return (
+            if (currentSortType === "amount") {
+                sortResult = amountA - amountB || sideA - sideB || envelopeA - envelopeB;
+            } else if (currentSortType === "relation") {
+                sortResult = (
                     getRelationOrder(relationA) - getRelationOrder(relationB) ||
                     relationA.localeCompare(relationB, "ko") ||
                     sideA - sideB ||
                     envelopeA - envelopeB
                 );
+            } else if (currentSortType === "ticket") {
+                sortResult = ticketA - ticketB || sideA - sideB || envelopeA - envelopeB;
+            } else {
+                sortResult = sideA - sideB || envelopeA - envelopeB;
             }
 
-            if (currentSortType === "ticket") {
-                return ticketB - ticketA || sideA - sideB || envelopeA - envelopeB;
-            }
-
-            return sideA - sideB || envelopeA - envelopeB;
+            return currentSortDirection === "desc" ? sortResult * -1 : sortResult;
         });
 
         if (recordList) {
@@ -249,33 +377,64 @@
         }
     }
 
+    function updateSortButtons() {
+        sortButtons.forEach((button) => {
+            const isActive = button.dataset.sortType === currentSortType;
+            const direction = isActive
+                ? currentSortDirection
+                : defaultSortDirections[button.dataset.sortType] || "asc";
+            const directionMark = button.querySelector(".sort-direction-mark");
+
+            button.classList.toggle("active", isActive);
+            button.dataset.sortDirection = direction;
+
+            if (directionMark) {
+                directionMark.textContent = isActive
+                    ? (direction === "desc" ? "\u2193" : "\u2191")
+                    : "";
+            }
+        });
+    }
+
     if (recordSearchInput) {
-        recordSearchInput.addEventListener("input", applyRecordView);
+        recordSearchInput.addEventListener("input", function () {
+            applyRecordView();
+            syncRecordsUrl();
+        });
     }
 
     sideFilterButtons.forEach((button) => {
         button.addEventListener("click", function () {
             currentSideFilter = button.dataset.sideFilter;
-
-            sideFilterButtons.forEach((otherButton) => {
-                otherButton.classList.remove("active");
-            });
-
-            button.classList.add("active");
+            updateSideFilterButtons();
             applyRecordView();
+            syncRecordsUrl();
         });
     });
 
+    if (unclassifiedFilterButton) {
+        unclassifiedFilterButton.addEventListener("click", function () {
+            unclassifiedOnly = !unclassifiedOnly;
+            updateUnclassifiedButton();
+            applyRecordView();
+            syncRecordsUrl();
+        });
+    }
+
     sortButtons.forEach((button) => {
         button.addEventListener("click", function () {
-            currentSortType = button.dataset.sortType;
+            const selectedSortType = button.dataset.sortType;
 
-            sortButtons.forEach((otherButton) => {
-                otherButton.classList.remove("active");
-            });
+            if (currentSortType === selectedSortType) {
+                currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+            } else {
+                currentSortType = selectedSortType;
+                currentSortDirection = defaultSortDirections[currentSortType] || "asc";
+            }
 
-            button.classList.add("active");
+            updateSortButtons();
             applyRecordView();
+            syncRecordsUrl();
         });
     });
 
@@ -305,6 +464,11 @@
         });
     });
 
+    restoreRecordsStateFromUrl();
+    updateSideFilterButtons();
+    updateUnclassifiedButton();
+    updateSortButtons();
     applyRecordView();
+    syncRecordsUrl();
 </script>
 {% endblock %}

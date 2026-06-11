@@ -488,24 +488,25 @@
 
     .compact-line,
     .compact-relation-block {
-        grid-template-columns: 64px 1fr;
-        gap: 6px;
+        grid-template-columns: 52px 1fr;
+        gap: 4px;
     }
 
     .compact-amount-buttons {
-        padding-left: 70px;
+        padding-left: 56px;
         gap: 5px;
     }
 
     .relation-buttons {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .compact-relation-buttons {
-        gap: 5px;
+        gap: 4px;
     }
 
     .compact-relation-buttons .relation-button {
+        min-width: 0;
         font-size: 12px;
     }
 }
