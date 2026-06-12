@@ -264,7 +264,7 @@
 
 .summary-bar-fill {
     display: block;
-    min-width: 3px;
+    width: 0;
     height: 100%;
     border-radius: inherit;
     background: linear-gradient(90deg, #f0a9c1 0%, #d65d8d 100%);
