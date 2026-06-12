@@ -8,7 +8,7 @@
 
 .summary-section {
     border: 1px solid var(--line);
-    border-radius: 20px;
+    border-radius: var(--radius-lg);
     padding: 13px 14px;
     background: #fff;
     box-shadow: var(--shadow);
@@ -43,11 +43,16 @@
     align-items: center;
     justify-content: center;
     border: 1px solid var(--line);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     padding: 12px 12px;
     background: #fff;
     text-align: center;
-    box-shadow: 0 5px 14px rgba(62, 44, 50, 0.045);
+    box-shadow: var(--shadow-sm);
+    transition:
+        border-color var(--ease),
+        box-shadow var(--ease),
+        transform var(--ease),
+        opacity var(--ease);
 }
 
 .summary-core-card-primary {
@@ -97,10 +102,15 @@
     display: flex;
     flex-direction: column;
     border: 1px solid var(--line);
-    border-radius: 15px;
+    border-radius: var(--radius-lg);
     background: #fff;
-    box-shadow: 0 5px 14px rgba(62, 44, 50, 0.04);
+    box-shadow: var(--shadow-sm);
     overflow: hidden;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        box-shadow var(--ease),
+        opacity var(--ease);
 }
 
 .summary-stat-card {
@@ -116,6 +126,10 @@
     color: inherit;
     text-align: left;
     cursor: pointer;
+    transition:
+        background var(--ease),
+        color var(--ease),
+        opacity var(--ease);
 }
 
 .summary-stat-text {
@@ -143,12 +157,13 @@
     flex: 0 0 auto;
     color: var(--muted);
     font-size: 17px;
-    transition: transform 0.18s ease, color 0.18s ease;
+    transition: transform var(--ease), color var(--ease);
 }
 
 .summary-stat-item.open {
     border-color: rgba(217, 79, 123, 0.24);
     background: #fff9fb;
+    box-shadow: var(--shadow-md);
 }
 
 .summary-stat-item.open .summary-stat-arrow {
@@ -188,7 +203,7 @@
 
 .summary-table-row {
     min-height: 32px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     padding: 7px 0;
     background: transparent;
     border-bottom: 1px solid rgba(231, 217, 211, 0.55);
@@ -268,6 +283,7 @@
     height: 100%;
     border-radius: inherit;
     background: linear-gradient(90deg, #f0a9c1 0%, #d65d8d 100%);
+    transition: width var(--ease), opacity var(--ease);
 }
 
 .summary-empty-text {

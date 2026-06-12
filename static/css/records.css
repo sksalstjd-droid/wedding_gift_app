@@ -17,7 +17,7 @@
     font-size: 13px;
     font-weight: 900;
     text-align: center;
-    box-shadow: 0 8px 20px rgba(80, 50, 40, 0.14);
+    box-shadow: var(--shadow-lg);
     animation: recordsToastFadeOut 2.6s ease forwards;
 }
 
@@ -59,10 +59,10 @@
 .records-control-card {
     background: #fff;
     border: 1px solid var(--line);
-    border-radius: 18px;
+    border-radius: var(--radius-lg);
     padding: 12px 13px;
     margin-bottom: 12px;
-    box-shadow: 0 7px 18px rgba(80, 50, 40, 0.045);
+    box-shadow: var(--shadow-md);
 }
 
 .records-top-line {
@@ -94,10 +94,14 @@
     border-radius: 14px;
     padding: 0 12px;
     margin-bottom: 9px;
-    background: #fbf8f8;
+    background: var(--surface-muted);
     display: flex;
     align-items: center;
     gap: 9px;
+    transition:
+        border-color var(--ease),
+        box-shadow var(--ease),
+        background var(--ease);
 }
 
 .records-search-box i {
@@ -164,6 +168,19 @@
     font-size: 12px;
     font-weight: 850;
     white-space: nowrap;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        box-shadow var(--ease),
+        transform var(--ease),
+        opacity var(--ease);
+}
+
+.record-filter-chip:active,
+.record-sort-chip:active,
+.record-unclassified-chip:active {
+    transform: scale(0.98);
 }
 
 .record-filter-chip,
@@ -202,11 +219,15 @@
 .record-card {
     position: relative;
     border: 1px solid var(--line);
-    border-radius: 17px;
+    border-radius: var(--radius-lg);
     padding: 9px 12px 8px;
     background: #fff;
-    box-shadow: 0 7px 17px rgba(80, 50, 40, 0.045);
+    box-shadow: var(--shadow-md);
     overflow: visible;
+    transition:
+        border-color var(--ease),
+        box-shadow var(--ease),
+        opacity var(--ease);
 }
 
 .record-card::before {
@@ -358,6 +379,9 @@
     justify-content: center;
     color: var(--muted);
     cursor: pointer;
+    transition:
+        background var(--ease),
+        color var(--ease);
 }
 
 .record-menu-button:hover {
@@ -372,10 +396,10 @@
     z-index: 30;
     min-width: 112px;
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     padding: 6px;
     background: #fff;
-    box-shadow: 0 10px 24px rgba(70, 45, 35, 0.16);
+    box-shadow: var(--shadow-lg);
 }
 
 .record-menu-item {
@@ -392,6 +416,9 @@
     align-items: center;
     gap: 7px;
     cursor: pointer;
+    transition:
+        background var(--ease),
+        color var(--ease);
 }
 
 .record-menu-item:hover {

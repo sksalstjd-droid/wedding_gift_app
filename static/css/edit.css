@@ -39,7 +39,7 @@
 }
 
 .edit-flash-message {
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     padding: 10px 12px;
     font-size: 13px;
     font-weight: 850;
@@ -51,7 +51,7 @@
 }
 
 .edit-flash-message.error {
-    background: #fff0f0;
+    background: var(--surface-danger);
     color: #d94848;
 }
 
@@ -79,13 +79,17 @@
 .edit-field textarea {
     width: 100%;
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     outline: none;
     background: #fff;
     color: var(--text);
     padding: 11px 12px;
     font-size: 16px;
     font-weight: 750;
+    transition:
+        border-color var(--ease),
+        box-shadow var(--ease),
+        background var(--ease);
 }
 
 .edit-field textarea {
@@ -131,13 +135,24 @@
 .edit-side-row label,
 .edit-relation-grid label {
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     padding: 11px 10px;
     background: #fff;
     color: var(--muted);
     text-align: center;
     font-size: 14px;
     font-weight: 900;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        box-shadow var(--ease),
+        transform var(--ease);
+}
+
+.edit-side-row label:active,
+.edit-relation-grid label:active {
+    transform: scale(0.98);
 }
 
 .edit-relation-grid label[data-custom-relation="1"] {
@@ -186,17 +201,23 @@
     width: 46px;
     height: 46px;
     border: 1px solid rgba(214, 93, 141, 0.34);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     background: #fff6f9;
     color: var(--primary-dark);
     font-size: 24px;
     font-weight: 800;
     line-height: 1;
     cursor: pointer;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        transform var(--ease),
+        box-shadow var(--ease);
 }
 
 .edit-relation-add-button:active {
-    transform: translateY(1px);
+    transform: scale(0.98);
     background: var(--primary-soft);
 }
 
@@ -217,12 +238,21 @@
 .edit-ticket-btn {
     height: 46px;
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     background: #fff;
     color: var(--primary-dark);
     font-size: 22px;
     font-weight: 500;
     cursor: pointer;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        transform var(--ease);
+}
+
+.edit-ticket-btn:active {
+    transform: scale(0.98);
 }
 
 .edit-ticket-control input {
@@ -263,7 +293,7 @@
     font-size: 13px;
     font-weight: 900;
     text-align: center;
-    box-shadow: 0 8px 20px rgba(80, 50, 40, 0.14);
+    box-shadow: var(--shadow-lg);
     animation: editToastFadeOut 2.6s ease forwards;
 }
 
@@ -300,13 +330,25 @@
 .edit-save-button {
     height: 52px;
     border: none;
-    border-radius: 17px;
+    border-radius: var(--radius-lg);
     font-size: 15px;
     font-weight: 950;
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        box-shadow var(--ease),
+        transform var(--ease),
+        opacity var(--ease);
+}
+
+.edit-cancel-button:active,
+.edit-save-button:active {
+    transform: scale(0.985);
 }
 
 .edit-cancel-button {
@@ -319,4 +361,5 @@
     background: var(--primary);
     color: #fff;
     gap: 7px;
+    box-shadow: 0 7px 16px rgba(216, 111, 136, 0.22);
 }

@@ -9,8 +9,17 @@
     --primary-soft: #fff0f4;
     --danger: #d9534f;
     --success: #2f9e44;
-    --shadow: 0 4px 14px rgba(80, 50, 40, 0.07);
-    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --shadow-sm: 0 2px 8px rgba(80, 50, 40, 0.06);
+    --shadow-md: 0 6px 16px rgba(80, 50, 40, 0.07);
+    --shadow-lg: 0 10px 24px rgba(80, 50, 40, 0.1);
+    --ease: 0.18s ease;
+    --surface-muted: #fbf8f8;
+    --surface-danger: #fff0f0;
+    --shadow: var(--shadow-md);
+    --radius: var(--radius-md);
 }
 
 * {
@@ -62,7 +71,7 @@ textarea {
     padding: 9px 14px;
     background: rgba(255, 255, 255, 0.98);
     border-bottom: 1px solid rgba(234, 222, 217, 0.9);
-    box-shadow: 0 2px 10px rgba(80, 50, 40, 0.045);
+    box-shadow: var(--shadow-sm);
 }
 
 .app-brand {
@@ -106,10 +115,21 @@ textarea {
     font-size: 12px;
     font-weight: 850;
     white-space: nowrap;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        box-shadow var(--ease),
+        transform var(--ease),
+        opacity var(--ease);
 }
 
 .header-export-button i {
     font-size: 15px;
+}
+
+.header-export-button:active {
+    transform: scale(0.98);
 }
 
 .main-content {
@@ -129,6 +149,7 @@ textarea {
     padding: 7px 10px 9px;
     background: rgba(255, 255, 255, 0.97);
     border-top: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
 }
 
 .bottom-nav a {
@@ -141,6 +162,10 @@ textarea {
     color: var(--muted);
     font-size: 12px;
     font-weight: 750;
+    transition:
+        background var(--ease),
+        color var(--ease),
+        opacity var(--ease);
 }
 
 .bottom-nav a i {
@@ -173,7 +198,7 @@ textarea {
     padding: 14px;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow);
 }
 
@@ -201,6 +226,10 @@ textarea {
     background: #fff;
     color: var(--text);
     outline: none;
+    transition:
+        border-color var(--ease),
+        box-shadow var(--ease),
+        background var(--ease);
 }
 
 .form-input {
@@ -236,7 +265,7 @@ textarea {
 .empty-state-card {
     background: #fff;
     border: 1px solid var(--line);
-    border-radius: 20px;
+    border-radius: var(--radius-lg);
     padding: 36px 16px;
     text-align: center;
     color: var(--muted);

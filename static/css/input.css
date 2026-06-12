@@ -24,7 +24,7 @@
 .extra-info-details {
     background: #fff;
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: var(--radius-md);
     overflow: hidden;
     box-shadow: var(--shadow);
 }
@@ -73,10 +73,20 @@
     height: 38px;
     border: 1px solid #ffd3d3;
     border-radius: 12px;
-    background: #fff0f0;
+    background: var(--surface-danger);
     color: #d9534f;
     font-size: 13px;
     font-weight: 900;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        transform var(--ease),
+        opacity var(--ease);
+}
+
+.danger-reset-button:active {
+    transform: scale(0.98);
 }
 
 .side-row {
@@ -116,6 +126,16 @@
     color: var(--muted);
     font-size: 14px;
     font-weight: 850;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        box-shadow var(--ease),
+        transform var(--ease);
+}
+
+.side-button:active {
+    transform: scale(0.98);
 }
 
 #side_bride:checked + label {
@@ -178,6 +198,10 @@
     border-radius: 13px;
     background: #fff;
     overflow: hidden;
+    transition:
+        border-color var(--ease),
+        box-shadow var(--ease),
+        background var(--ease);
 }
 
 .envelope-prefix {
@@ -264,11 +288,17 @@
     color: var(--text);
     font-size: 15px;
     font-weight: 850;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        transform var(--ease);
 }
 
 .quick-amount-btn:active {
     border-color: var(--primary);
     background: var(--primary-soft);
+    transform: scale(0.98);
 }
 
 .compact-amount-buttons .quick-amount-btn {
@@ -292,6 +322,15 @@
     color: var(--primary-dark);
     font-size: 18px;
     font-weight: 900;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        transform var(--ease);
+}
+
+.ticket-btn:active {
+    transform: scale(0.98);
 }
 
 .compact-ticket-control .ticket-btn {
@@ -354,6 +393,16 @@
     color: var(--muted);
     font-size: 14px;
     font-weight: 800;
+    transition:
+        background var(--ease),
+        border-color var(--ease),
+        color var(--ease),
+        box-shadow var(--ease),
+        transform var(--ease);
+}
+
+.relation-button:active {
+    transform: scale(0.98);
 }
 
 .compact-relation-buttons .relation-button {
@@ -397,6 +446,17 @@
     color: #fff;
     font-size: 16px;
     font-weight: 900;
+    box-shadow: 0 7px 16px rgba(216, 111, 136, 0.22);
+    transition:
+        background var(--ease),
+        box-shadow var(--ease),
+        transform var(--ease),
+        opacity var(--ease);
+}
+
+.primary-submit-button:active {
+    transform: scale(0.985);
+    box-shadow: 0 4px 10px rgba(216, 111, 136, 0.18);
 }
 
 .primary-submit-button i {
@@ -420,7 +480,7 @@
     font-weight: 900;
     text-align: center;
     animation: toastFadeOut 2s ease forwards;
-    box-shadow: 0 8px 20px rgba(80, 50, 40, 0.14);
+    box-shadow: var(--shadow-lg);
 }
 
 .toast-success {
