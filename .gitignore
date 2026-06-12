@@ -4,19 +4,35 @@ __pycache__/
 .venv/
 venv/
 
-# Flask / env
+# Environment
 .env
+.env.local
+.env.production
+
+# Flask instance
 instance/
 
-# Database
+# SQLite
 *.db
 *.sqlite
 *.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Export files
+*.xlsx
+
+# Logs
+*.log
 
 # OS / editor
 .DS_Store
 Thumbs.db
 .vscode/
 
-# Export files
-*.xlsx
+# Archives
+*.zip

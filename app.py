@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from io import BytesIO
 from types import SimpleNamespace
@@ -182,6 +183,19 @@ def is_active_envelope_no_exists(event_id, side, envelope_no):
     ).first() is not None
 
 
+def is_safe_internal_url(target):
+    return bool(target) and target.startswith("/") and not target.startswith("//")
+
+
+def get_next_url(default_endpoint="input_page"):
+    next_url = request.values.get("next", "").strip()
+
+    if is_safe_internal_url(next_url):
+        return next_url
+
+    return url_for(default_endpoint)
+
+
 @app.before_request
 def prepare_database():
     """
@@ -196,6 +210,52 @@ def prepare_database():
     db.create_all()
     get_or_create_default_event()
     _app_initialized = True
+
+
+@app.before_request
+def require_admin_pin():
+    admin_pin = os.getenv("ADMIN_PIN")
+
+    if not admin_pin:
+        return
+
+    allowed_endpoints = {"login", "logout", "static"}
+
+    if request.endpoint in allowed_endpoints:
+        return
+
+    if session.get("admin_authenticated"):
+        return
+
+    next_url = request.full_path if request.query_string else request.path
+    return redirect(url_for("login", next=next_url))
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    admin_pin = os.getenv("ADMIN_PIN")
+
+    if not admin_pin:
+        return redirect(url_for("input_page"))
+
+    error = None
+
+    if request.method == "POST":
+        pin = request.form.get("pin", "").strip()
+
+        if pin == admin_pin:
+            session["admin_authenticated"] = True
+            return redirect(get_next_url())
+
+        error = "PIN이 올바르지 않습니다."
+
+    return render_template("login.html", error=error)
+
+
+@app.route("/logout")
+def logout():
+    session.pop("admin_authenticated", None)
+    return redirect(url_for("login"))
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -951,4 +1011,8 @@ def money_filter(value):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", 5000)),
+        debug=os.getenv("FLASK_DEBUG") == "1",
+    )

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Happy Wedding</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="login-body">
+    <main class="login-page">
+        <section class="login-card">
+            <div class="login-brand">
+                <img
+                    src="{{ url_for('static', filename='icons/diamond-ring.png') }}"
+                    alt=""
+                    class="login-title-icon"
+                >
+                <h1>Happy Wedding</h1>
+            </div>
+
+            <p class="login-description">관리 PIN을 입력해 주세요.</p>
+
+            <form method="POST" class="login-form">
+                <label for="pin" class="login-label">PIN</label>
+                <input
+                    type="password"
+                    id="pin"
+                    name="pin"
+                    class="login-input"
+                    inputmode="numeric"
+                    autocomplete="current-password"
+                    autofocus
+                    required
+                >
+
+                {% if error %}
+                    <p class="login-error">{{ error }}</p>
+                {% endif %}
+
+                <button type="submit" class="login-submit-button">
+                    확인
+                </button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>
