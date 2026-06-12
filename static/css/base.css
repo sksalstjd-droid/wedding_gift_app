@@ -9,15 +9,37 @@
     --primary-soft: #fff0f4;
     --danger: #d9534f;
     --success: #2f9e44;
+    --success-dark: #2f8f4e;
     --radius-sm: 10px;
     --radius-md: 14px;
     --radius-lg: 20px;
     --shadow-sm: 0 2px 8px rgba(80, 50, 40, 0.06);
     --shadow-md: 0 6px 16px rgba(80, 50, 40, 0.07);
     --shadow-lg: 0 10px 24px rgba(80, 50, 40, 0.1);
+    --shadow-focus-primary: 0 0 0 3px rgba(216, 111, 136, 0.13);
+    --shadow-primary-action: 0 7px 16px rgba(216, 111, 136, 0.22);
+    --shadow-primary-action-pressed: 0 4px 10px rgba(216, 111, 136, 0.18);
     --ease: 0.18s ease;
     --surface-muted: #fbf8f8;
+    --surface-raised: #fffdfd;
+    --surface-primary-soft: var(--primary-soft);
+    --surface-bride-soft: #fff6f9;
+    --surface-bride-tint: #fff9fb;
+    --surface-groom-soft: #edf2ff;
+    --surface-ticket-soft: #fff7e6;
+    --surface-warning-soft: #fff4df;
     --surface-danger: #fff0f0;
+    --surface-success: #eaf8ee;
+    --surface-empty: rgba(255, 255, 255, 0.72);
+    --surface-bar-track: #f4eeee;
+    --line-success: #c9efd3;
+    --line-danger: #ffd3d3;
+    --line-ticket: #ffe0a3;
+    --line-warning: #edcf9c;
+    --text-groom: #364fc7;
+    --line-groom: #4c6ef5;
+    --text-ticket: #b66b00;
+    --text-warning: #8a5a10;
     --shadow: var(--shadow-md);
     --radius: var(--radius-md);
 }
@@ -110,7 +132,7 @@ textarea {
     padding: 0 14px;
     border: 1px solid var(--line);
     border-radius: 999px;
-    background: #fffdfd;
+    background: var(--surface-raised);
     color: var(--primary-dark);
     font-size: 12px;
     font-weight: 850;
@@ -174,7 +196,7 @@ textarea {
 
 .bottom-nav a.active {
     color: var(--primary-dark);
-    background: var(--primary-soft);
+    background: var(--surface-primary-soft);
 }
 
 .page-title-box {
@@ -249,26 +271,27 @@ textarea {
 .form-textarea:focus,
 .ticket-input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(216, 111, 136, 0.13);
+    box-shadow: var(--shadow-focus-primary);
+}
+
+.empty-box,
+.empty-state-card {
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface-empty);
+    color: var(--muted);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
 }
 
 .empty-box {
     padding: 18px 12px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px dashed var(--line);
-    color: var(--muted);
-    text-align: center;
     font-size: 14px;
+    font-weight: 750;
 }
 
 .empty-state-card {
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    padding: 36px 16px;
-    text-align: center;
-    color: var(--muted);
+    padding: 26px 16px;
 }
 
 .empty-state-card i {

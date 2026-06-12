@@ -13,11 +13,7 @@
 }
 
 .compact-title h2 {
-    font-size: 22px;
-}
-
-.compact-title p {
-    font-size: 12px;
+    font-size: 18px;
 }
 
 .admin-reset-details,
@@ -71,10 +67,10 @@
 .danger-reset-button {
     width: 100%;
     height: 38px;
-    border: 1px solid #ffd3d3;
+    border: 1px solid var(--line-danger);
     border-radius: 12px;
     background: var(--surface-danger);
-    color: #d9534f;
+    color: var(--danger);
     font-size: 13px;
     font-weight: 900;
     transition:
@@ -140,14 +136,14 @@
 
 #side_bride:checked + label {
     border-color: var(--primary);
-    background: var(--primary-soft);
+    background: var(--surface-primary-soft);
     color: var(--primary-dark);
 }
 
 #side_groom:checked + label {
-    border-color: #4c6ef5;
-    background: #edf2ff;
-    color: #364fc7;
+    border-color: var(--line-groom);
+    background: var(--surface-groom-soft);
+    color: var(--text-groom);
 }
 
 .compact-side-card {
@@ -209,7 +205,7 @@
     width: 54px;
     height: 100%;
     border-right: 1px solid var(--line);
-    background: var(--primary-soft);
+    background: var(--surface-primary-soft);
     color: var(--primary-dark);
     display: flex;
     align-items: center;
@@ -220,13 +216,13 @@
 }
 
 .envelope-prefix.bride-prefix {
-    background: var(--primary-soft);
+    background: var(--surface-primary-soft);
     color: var(--primary-dark);
 }
 
 .envelope-prefix.groom-prefix {
-    background: #edf2ff;
-    color: #364fc7;
+    background: var(--surface-groom-soft);
+    color: var(--text-groom);
 }
 
 .name-input-inner {
@@ -297,7 +293,7 @@
 
 .quick-amount-btn:active {
     border-color: var(--primary);
-    background: var(--primary-soft);
+    background: var(--surface-primary-soft);
     transform: scale(0.98);
 }
 
@@ -413,7 +409,7 @@
 
 .relation-buttons input:checked + .relation-button {
     border-color: var(--primary);
-    background: var(--primary-soft);
+    background: var(--surface-primary-soft);
     color: var(--primary-dark);
 }
 
@@ -446,7 +442,7 @@
     color: #fff;
     font-size: 16px;
     font-weight: 900;
-    box-shadow: 0 7px 16px rgba(216, 111, 136, 0.22);
+    box-shadow: var(--shadow-primary-action);
     transition:
         background var(--ease),
         box-shadow var(--ease),
@@ -456,7 +452,7 @@
 
 .primary-submit-button:active {
     transform: scale(0.985);
-    box-shadow: 0 4px 10px rgba(216, 111, 136, 0.18);
+    box-shadow: var(--shadow-primary-action-pressed);
 }
 
 .primary-submit-button i {
@@ -485,14 +481,14 @@
 
 .toast-success {
     color: var(--success);
-    background: #eaf8ee;
-    border: 1px solid #c9efd3;
+    background: var(--surface-success);
+    border: 1px solid var(--line-success);
 }
 
 .toast-error {
     color: var(--danger);
-    background: #fff0f0;
-    border: 1px solid #ffd3d3;
+    background: var(--surface-danger);
+    border: 1px solid var(--line-danger);
 }
 
 @keyframes toastFadeOut {

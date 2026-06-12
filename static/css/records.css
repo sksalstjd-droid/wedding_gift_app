@@ -22,14 +22,14 @@
 }
 
 .records-toast-success {
-    border: 1px solid #c9efd3;
-    background: #eaf8ee;
+    border: 1px solid var(--line-success);
+    background: var(--surface-success);
     color: var(--success);
 }
 
 .records-toast-error {
-    border: 1px solid #ffd3d3;
-    background: #fff0f0;
+    border: 1px solid var(--line-danger);
+    background: var(--surface-danger);
     color: var(--danger);
 }
 
@@ -205,9 +205,17 @@
 }
 
 .record-unclassified-chip.active {
-    border-color: #d19a37;
-    background: #fff7e7;
-    color: #9b620c;
+    border-color: var(--line-warning);
+    background: var(--surface-warning-soft);
+    color: var(--text-warning);
+}
+
+.record-unclassified-chip.active::before {
+    content: "\2713";
+    margin-right: 1px;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1;
 }
 
 .record-list {
@@ -254,15 +262,15 @@
     flex: 0 0 auto;
     border-radius: 999px;
     padding: 3px 7px;
-    background: var(--primary-soft);
+    background: var(--surface-primary-soft);
     color: var(--primary-dark);
     font-size: 12px;
     font-weight: 950;
 }
 
 .groom-record .record-envelope {
-    background: #edf2ff;
-    color: #364fc7;
+    background: var(--surface-groom-soft);
+    color: var(--text-groom);
 }
 
 .record-name {
@@ -335,17 +343,17 @@
 
 .record-side-text.groom-text,
 .groom-record .record-side-text {
-    color: #364fc7;
+    color: var(--text-groom);
 }
 
 .record-ticket {
     flex: 0 0 auto;
     justify-self: end;
-    border: 1px solid #ffe0a3;
+    border: 1px solid var(--line-ticket);
     border-radius: 999px;
     padding: 4px 8px;
-    background: #fff7e6;
-    color: #b66b00;
+    background: var(--surface-ticket-soft);
+    color: var(--text-ticket);
     font-size: 12px;
     font-weight: 950;
     display: flex;
@@ -385,7 +393,7 @@
 }
 
 .record-menu-button:hover {
-    background: var(--primary-soft);
+    background: var(--surface-primary-soft);
     color: var(--primary-dark);
 }
 
@@ -422,15 +430,20 @@
 }
 
 .record-menu-item:hover {
-    background: var(--primary-soft);
+    background: var(--surface-primary-soft);
 }
 
 .record-menu-item.danger {
-    color: #d94848;
+    color: var(--danger);
 }
 
 .record-empty-message {
-    margin: 22px 0;
+    margin: 12px 0 0;
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-lg);
+    padding: 18px 12px;
+    background: var(--surface-empty);
+    box-shadow: var(--shadow-sm);
     color: var(--muted);
     text-align: center;
     font-size: 14px;
