@@ -395,10 +395,113 @@ def summary_page():
         groom_tickets=groom_tickets,
     )
 
+    custom_relation_names = [
+        category.name
+        for category in get_custom_relation_categories(event.id)
+        if category.name not in DEFAULT_RELATION_OPTIONS
+    ]
+    unclassified_relation_label = "관계 미분류"
+    relation_sort_order = {
+        relation_name: index
+        for index, relation_name in enumerate(DEFAULT_RELATION_OPTIONS + custom_relation_names)
+    }
+    relation_sort_order[unclassified_relation_label] = 9999
+
+    relation_stats_by_name = {}
+    for gift in gifts:
+        relation_name = (gift.relation or "").strip() or unclassified_relation_label
+
+        if relation_name not in relation_stats_by_name:
+            relation_stats_by_name[relation_name] = {
+                "name": relation_name,
+                "count": 0,
+                "amount": 0,
+                "tickets": 0,
+            }
+
+        relation_stats_by_name[relation_name]["count"] += 1
+        relation_stats_by_name[relation_name]["amount"] += gift.amount
+        relation_stats_by_name[relation_name]["tickets"] += gift.meal_ticket_count
+
+    relation_stats = sorted(
+        relation_stats_by_name.values(),
+        key=lambda row: (
+            relation_sort_order.get(row["name"], 5000),
+            row["name"],
+        ),
+    )
+
+    amount_buckets = [
+        {"label": "10만원 이하", "count": 0},
+        {"label": "10만원대", "count": 0},
+        {"label": "20만원대", "count": 0},
+        {"label": "30만원대", "count": 0},
+        {"label": "40만원대", "count": 0},
+        {"label": "50만원 이상", "count": 0},
+    ]
+
+    for gift in gifts:
+        if gift.amount <= 100000:
+            amount_buckets[0]["count"] += 1
+        elif gift.amount < 200000:
+            amount_buckets[1]["count"] += 1
+        elif gift.amount < 300000:
+            amount_buckets[2]["count"] += 1
+        elif gift.amount < 400000:
+            amount_buckets[3]["count"] += 1
+        elif gift.amount < 500000:
+            amount_buckets[4]["count"] += 1
+        else:
+            amount_buckets[5]["count"] += 1
+
+    max_amount_bucket_count = max([bucket["count"] for bucket in amount_buckets] or [0])
+    for bucket in amount_buckets:
+        bucket["percent"] = (
+            round(bucket["count"] / max_amount_bucket_count * 100)
+            if max_amount_bucket_count > 0
+            else 0
+        )
+
+    ticket_stats_by_count = {}
+    for gift in gifts:
+        ticket_count = gift.meal_ticket_count
+        ticket_stats_by_count[ticket_count] = ticket_stats_by_count.get(ticket_count, 0) + 1
+
+    ticket_stats = [
+        {"label": f"{ticket_count}장", "count": count}
+        for ticket_count, count in sorted(ticket_stats_by_count.items())
+    ]
+    max_ticket_stat_count = max([row["count"] for row in ticket_stats] or [0])
+    for row in ticket_stats:
+        row["percent"] = (
+            round(row["count"] / max_ticket_stat_count * 100)
+            if max_ticket_stat_count > 0
+            else 0
+        )
+
+    side_stats = [
+        {
+            "side": "신부측",
+            "count": len(bride_gifts),
+            "amount": bride_amount,
+            "tickets": bride_tickets,
+        },
+        {
+            "side": "신랑측",
+            "count": len(groom_gifts),
+            "amount": groom_amount,
+            "tickets": groom_tickets,
+        },
+    ]
+
     return render_template(
         "summary.html",
         event=event,
         summary=summary,
+        relation_stats=relation_stats,
+        amount_buckets=amount_buckets,
+        ticket_stats=ticket_stats,
+        side_stats=side_stats,
         total_amount=total_amount,
         total_people=total_people,
         total_tickets=total_tickets,

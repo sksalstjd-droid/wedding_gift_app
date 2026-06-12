@@ -17,7 +17,7 @@
       <article class="summary-core-card">
         <div class="summary-core-label">
           <i class="bi bi-people" aria-hidden="true"></i>
-          <span>총 건수</span>
+          <span>입력 건수</span>
         </div>
         <strong>{{ summary.total_count }}건</strong>
       </article>
@@ -44,38 +44,157 @@
     <h2 class="summary-section-title">세부 통계</h2>
 
     <div class="summary-stat-list">
-      <article class="summary-stat-card">
-        <div class="summary-stat-text">
-          <strong>관계별 통계</strong>
-          <span>관계 기준 집계</span>
+      <article class="summary-stat-item" data-summary-item>
+        <button type="button" class="summary-stat-card" data-summary-toggle aria-expanded="false">
+          <span class="summary-stat-text">
+            <strong>관계별 통계</strong>
+            <span>관계 기준 집계</span>
+          </span>
+          <i class="bi bi-chevron-right summary-stat-arrow" aria-hidden="true"></i>
+        </button>
+
+        <div class="summary-detail-panel" data-summary-panel hidden>
+          {% if relation_stats %}
+            <div class="summary-mini-table">
+              <div class="summary-table-head">
+                <span>관계</span>
+                <span>건수</span>
+                <span>금액</span>
+                <span>식권</span>
+              </div>
+
+              {% for row in relation_stats %}
+                <div class="summary-table-row">
+                  <span class="summary-table-label">{{ row.name }}</span>
+                  <span>{{ row.count }}건</span>
+                  <span>{{ '{:,}'.format(row.amount) }}원</span>
+                  <span>{{ row.tickets }}장</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="summary-empty-text">아직 표시할 통계가 없습니다.</p>
+          {% endif %}
         </div>
-        <i class="bi bi-chevron-right" aria-hidden="true"></i>
       </article>
 
-      <article class="summary-stat-card">
-        <div class="summary-stat-text">
-          <strong>금액별 통계</strong>
-          <span>금액 단위별 집계</span>
+      <article class="summary-stat-item" data-summary-item>
+        <button type="button" class="summary-stat-card" data-summary-toggle aria-expanded="false">
+          <span class="summary-stat-text">
+            <strong>금액별 통계</strong>
+            <span>금액 단위별 건수</span>
+          </span>
+          <i class="bi bi-chevron-right summary-stat-arrow" aria-hidden="true"></i>
+        </button>
+
+        <div class="summary-detail-panel" data-summary-panel hidden>
+          <div class="summary-bar-list">
+            {% for bucket in amount_buckets %}
+              <div class="summary-bar-row">
+                <div class="summary-bar-meta">
+                  <span>{{ bucket.label }}</span>
+                  <strong>{{ bucket.count }}건</strong>
+                </div>
+                <div class="summary-bar-track" aria-hidden="true">
+                  <span class="summary-bar-fill" style="width: {{ bucket.percent }}%;"></span>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         </div>
-        <i class="bi bi-chevron-right" aria-hidden="true"></i>
       </article>
 
-      <article class="summary-stat-card">
-        <div class="summary-stat-text">
-          <strong>식권 통계</strong>
-          <span>식권 수량별 집계</span>
+      <article class="summary-stat-item" data-summary-item>
+        <button type="button" class="summary-stat-card" data-summary-toggle aria-expanded="false">
+          <span class="summary-stat-text">
+            <strong>식권 통계</strong>
+            <span>식권 수량별 건수</span>
+          </span>
+          <i class="bi bi-chevron-right summary-stat-arrow" aria-hidden="true"></i>
+        </button>
+
+        <div class="summary-detail-panel" data-summary-panel hidden>
+          {% if ticket_stats %}
+            <div class="summary-bar-list">
+              {% for row in ticket_stats %}
+                <div class="summary-bar-row">
+                  <div class="summary-bar-meta">
+                    <span>{{ row.label }}</span>
+                    <strong>{{ row.count }}건</strong>
+                  </div>
+                  <div class="summary-bar-track" aria-hidden="true">
+                    <span class="summary-bar-fill" style="width: {{ row.percent }}%;"></span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="summary-empty-text">아직 표시할 통계가 없습니다.</p>
+          {% endif %}
         </div>
-        <i class="bi bi-chevron-right" aria-hidden="true"></i>
       </article>
 
-      <article class="summary-stat-card">
-        <div class="summary-stat-text">
-          <strong>접수 구분 통계</strong>
-          <span>신부측 / 신랑측 기준 집계</span>
+      <article class="summary-stat-item" data-summary-item>
+        <button type="button" class="summary-stat-card" data-summary-toggle aria-expanded="false">
+          <span class="summary-stat-text">
+            <strong>접수 구분 통계</strong>
+            <span>신부측 / 신랑측 기준 집계</span>
+          </span>
+          <i class="bi bi-chevron-right summary-stat-arrow" aria-hidden="true"></i>
+        </button>
+
+        <div class="summary-detail-panel" data-summary-panel hidden>
+          <div class="summary-mini-table summary-side-table">
+            <div class="summary-table-head">
+              <span>구분</span>
+              <span>건수</span>
+              <span>금액</span>
+              <span>식권</span>
+            </div>
+
+            {% for row in side_stats %}
+              <div class="summary-table-row">
+                <span class="summary-table-label">{{ row.side }}</span>
+                <span>{{ row.count }}건</span>
+                <span>{{ '{:,}'.format(row.amount) }}원</span>
+                <span>{{ row.tickets }}장</span>
+              </div>
+            {% endfor %}
+          </div>
         </div>
-        <i class="bi bi-chevron-right" aria-hidden="true"></i>
       </article>
     </div>
   </section>
 </div>
+
+<script>
+  document.querySelectorAll("[data-summary-toggle]").forEach((toggle) => {
+    toggle.addEventListener("click", function () {
+      const item = toggle.closest("[data-summary-item]");
+      const panel = item ? item.querySelector("[data-summary-panel]") : null;
+      const isOpen = toggle.getAttribute("aria-expanded") === "true";
+
+      document.querySelectorAll("[data-summary-item]").forEach((otherItem) => {
+        const otherToggle = otherItem.querySelector("[data-summary-toggle]");
+        const otherPanel = otherItem.querySelector("[data-summary-panel]");
+
+        otherItem.classList.remove("open");
+        if (otherToggle) {
+          otherToggle.setAttribute("aria-expanded", "false");
+        }
+        if (otherPanel) {
+          otherPanel.hidden = true;
+        }
+      });
+
+      if (!item || !panel || isOpen) {
+        return;
+      }
+
+      item.classList.add("open");
+      toggle.setAttribute("aria-expanded", "true");
+      panel.hidden = false;
+    });
+  });
+</script>
 {% endblock %}
