@@ -15,6 +15,8 @@ app.config.from_object(Config)
 
 db.init_app(app)
 
+_app_initialized = False
+
 
 SIDE_ORDER = {
     "신부측": 1,
@@ -186,8 +188,14 @@ def prepare_database():
     앱 실행 후 첫 요청이 들어왔을 때 DB 테이블을 생성합니다.
     초반 개발 단계에서는 이 방식이 가장 단순합니다.
     """
+    global _app_initialized
+
+    if _app_initialized:
+        return
+
     db.create_all()
     get_or_create_default_event()
+    _app_initialized = True
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -432,7 +440,7 @@ def summary_page():
     )
 
     amount_buckets = [
-        {"label": "10만원 이하", "count": 0},
+        {"label": "10만원 미만", "count": 0},
         {"label": "10만원대", "count": 0},
         {"label": "20만원대", "count": 0},
         {"label": "30만원대", "count": 0},
@@ -441,7 +449,7 @@ def summary_page():
     ]
 
     for gift in gifts:
-        if gift.amount <= 100000:
+        if gift.amount < 100000:
             amount_buckets[0]["count"] += 1
         elif gift.amount < 200000:
             amount_buckets[1]["count"] += 1
@@ -524,6 +532,7 @@ def delete_gift(gift_id):
     봉투번호 매칭을 위해 삭제한 번호를 다음 입력 기본값으로 되돌립니다.
     """
     event = get_or_create_default_event()
+    return_url = request.form.get("return_url", "").strip()
 
     gift = Gift.query.filter(
         Gift.id == gift_id,
@@ -538,10 +547,8 @@ def delete_gift(gift_id):
 
         flash(f"{gift.side} #{gift.envelope_no} {gift.name}님 삭제 완료", "success")
 
-    # 내역 화면에서 삭제했다면 내역 화면으로, 입력 화면에서 삭제했다면 입력 화면으로 돌아갑니다.
-    referrer = request.referrer or ""
-    if "/records" in referrer:
-        return redirect(url_for("records_page"))
+    if return_url.startswith("/") and not return_url.startswith("//"):
+        return redirect(return_url)
 
     return redirect(url_for("input_page"))
 
@@ -745,10 +752,12 @@ def reset_all_data():
 
     주의:
     - gifts 테이블 전체를 비웁니다.
+    - relationship_categories 테이블 전체를 비웁니다.
     - 신부측/신랑측 봉투번호를 각각 #1로 되돌립니다.
     - 구분은 신부측으로 되돌립니다.
     """
     Gift.query.delete()
+    RelationshipCategory.query.delete()
     db.session.commit()
 
     session["next_envelope_no_신부측"] = 1

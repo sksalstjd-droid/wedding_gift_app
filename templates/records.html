@@ -119,8 +119,15 @@
                                     <form
                                         method="POST"
                                         action="{{ url_for('delete_gift', gift_id=gift.id) }}"
+                                        data-delete-form
                                         onsubmit="return confirm('이 내역을 삭제할까요? 삭제 후 입력 화면의 다음 봉투번호가 #{{ gift.envelope_no }}로 돌아갑니다.');"
                                     >
+                                        <input
+                                            type="hidden"
+                                            name="return_url"
+                                            value="{{ url_for('records_page') }}"
+                                            data-return-url-input
+                                        >
                                         <button type="submit" class="record-menu-item danger">
                                             <i class="bi bi-trash"></i>
                                             삭제
@@ -267,6 +274,10 @@
             const editUrl = new URL(link.dataset.baseEditUrl, window.location.origin);
             editUrl.searchParams.set("return_url", returnUrl);
             link.href = `${editUrl.pathname}${editUrl.search}`;
+        });
+
+        document.querySelectorAll("[data-return-url-input]").forEach((input) => {
+            input.value = returnUrl;
         });
     }
 
