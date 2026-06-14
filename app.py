@@ -420,7 +420,28 @@ def records_page():
 
     gifts = sort_gifts_by_side_and_envelope(gifts)
 
-    return render_template("records.html", event=event, gifts=gifts)
+    relation_filter_options = [
+        {"value": "all", "label": "전체", "kind": "all"},
+        {"value": "__unclassified__", "label": "미분류", "kind": "unclassified"},
+    ]
+
+    relation_filter_options.extend(
+        {"value": relation, "label": relation, "kind": "default"}
+        for relation in DEFAULT_RELATION_OPTIONS
+    )
+
+    relation_filter_options.extend(
+        {"value": category.name, "label": category.name, "kind": "custom"}
+        for category in get_custom_relation_categories(event.id)
+        if category.name not in DEFAULT_RELATION_OPTIONS
+    )
+
+    return render_template(
+        "records.html",
+        event=event,
+        gifts=gifts,
+        relation_filter_options=relation_filter_options,
+    )
 
 
 @app.route("/summary")
@@ -468,7 +489,7 @@ def summary_page():
         for category in get_custom_relation_categories(event.id)
         if category.name not in DEFAULT_RELATION_OPTIONS
     ]
-    unclassified_relation_label = "관계 미분류"
+    unclassified_relation_label = "미분류"
     relation_sort_order = {
         relation_name: index
         for index, relation_name in enumerate(DEFAULT_RELATION_OPTIONS + custom_relation_names)

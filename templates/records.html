@@ -33,7 +33,7 @@
         <div class="records-option-line">
             <span class="records-option-label">필터</span>
 
-            <div class="records-chip-group">
+            <div class="records-chip-group records-filter-chip-group">
                 <button type="button" class="record-filter-chip active" data-side-filter="all">
                     전체
                 </button>
@@ -43,15 +43,35 @@
                 <button type="button" class="record-filter-chip" data-side-filter="신랑측">
                     신랑측
                 </button>
-                <button
-                    type="button"
-                    class="record-unclassified-chip"
-                    id="unclassifiedFilterButton"
-                    data-unclassified-filter="1"
-                    aria-pressed="false"
-                >
-                    관계 미분류
-                </button>
+                <div class="record-relation-dropdown" id="relationFilterDropdown">
+                    <button
+                        type="button"
+                        class="record-relation-toggle"
+                        id="relationFilterToggle"
+                        aria-expanded="false"
+                        aria-controls="relationFilterPanel"
+                    >
+                        <span class="record-relation-toggle-text" id="relationFilterLabel">
+                            관계: 전체
+                        </span>
+                        <span class="record-relation-toggle-arrow" aria-hidden="true">▾</span>
+                    </button>
+
+                    <div class="record-relation-panel" id="relationFilterPanel" hidden>
+                        {% for option in relation_filter_options %}
+                            <button
+                                type="button"
+                                class="record-relation-chip {% if option.kind == 'unclassified' %}unclassified-option{% endif %}"
+                                data-relation-filter="{{ option.value }}"
+                                data-relation-label="{{ option.label }}"
+                                data-relation-kind="{{ option.kind }}"
+                                aria-pressed="false"
+                            >
+                                <span class="record-relation-chip-label">{{ option.label }}</span>
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -88,7 +108,7 @@
                     data-side="{{ gift.side }}"
                     data-envelope="{{ gift.envelope_no }}"
                     data-amount="{{ gift.amount }}"
-                    data-relation="{{ gift.relation or '' }}"
+                    data-relation="{{ (gift.relation or '')|trim }}"
                     data-ticket="{{ gift.meal_ticket_count }}"
                 >
                     <div class="record-main-row">
@@ -149,7 +169,7 @@
                                 {{ gift.side }}
                             </span>
 
-                            <span>{{ gift.relation.strip() if gift.relation and gift.relation.strip() else '관계 미분류' }}</span>
+                            <span>{{ gift.relation.strip() if gift.relation and gift.relation.strip() else '미분류' }}</span>
 
                             {% if gift.memo %}
                                 <span>메모 있음</span>
@@ -184,12 +204,19 @@
 
     const sideFilterButtons = document.querySelectorAll("[data-side-filter]");
     const sortButtons = document.querySelectorAll("[data-sort-type]");
-    const unclassifiedFilterButton = document.getElementById("unclassifiedFilterButton");
+    const relationFilterDropdown = document.getElementById("relationFilterDropdown");
+    const relationFilterToggle = document.getElementById("relationFilterToggle");
+    const relationFilterPanel = document.getElementById("relationFilterPanel");
+    const relationFilterLabel = document.getElementById("relationFilterLabel");
+    const relationFilterButtons = document.querySelectorAll("[data-relation-filter]");
 
     let currentSideFilter = "all";
+    let currentRelationFilter = "all";
     let currentSortType = "envelope";
     let currentSortDirection = "asc";
-    let unclassifiedOnly = false;
+
+    const RELATION_ALL = "all";
+    const RELATION_UNCLASSIFIED = "__unclassified__";
 
     const defaultSortDirections = {
         envelope: "asc",
@@ -241,7 +268,37 @@
 
     function isUnclassifiedRelation(relation) {
         const normalizedRelation = normalizeRelation(relation);
-        return normalizedRelation === "" || normalizedRelation === "기타";
+        return normalizedRelation === "";
+    }
+
+    function getRelationFilterValues() {
+        return new Set(
+            Array.from(relationFilterButtons).map((button) => button.dataset.relationFilter)
+        );
+    }
+
+    function isValidRelationFilter(relationFilter) {
+        return getRelationFilterValues().has(relationFilter);
+    }
+
+    function getCurrentRelationOption() {
+        return Array.from(relationFilterButtons).find(
+            (button) => button.dataset.relationFilter === currentRelationFilter
+        );
+    }
+
+    function matchesRelationFilter(relation) {
+        const normalizedRelation = normalizeRelation(relation);
+
+        if (currentRelationFilter === RELATION_ALL) {
+            return true;
+        }
+
+        if (currentRelationFilter === RELATION_UNCLASSIFIED) {
+            return isUnclassifiedRelation(normalizedRelation);
+        }
+
+        return normalizedRelation === currentRelationFilter;
     }
 
     function getRecordsStatePath() {
@@ -256,8 +313,8 @@
             params.set("side", currentSideFilter);
         }
 
-        if (unclassifiedOnly) {
-            params.set("unclassified", "1");
+        if (currentRelationFilter !== RELATION_ALL) {
+            params.set("relation", currentRelationFilter);
         }
 
         if (currentSortType !== "envelope") {
@@ -295,15 +352,22 @@
     function restoreRecordsStateFromUrl() {
         const params = new URLSearchParams(window.location.search);
         const sideFilter = params.get("side") || "all";
+        const relationFilter = params.get("relation") || "";
         const sortType = params.get("sort") || "envelope";
         const sortDirection = params.get("direction") || defaultSortDirections[sortType] || "asc";
 
         currentSideFilter = isValidSideFilter(sideFilter) ? sideFilter : "all";
+        if (relationFilter && isValidRelationFilter(relationFilter)) {
+            currentRelationFilter = relationFilter;
+        } else if (params.get("unclassified") === "1") {
+            currentRelationFilter = RELATION_UNCLASSIFIED;
+        } else {
+            currentRelationFilter = RELATION_ALL;
+        }
         currentSortType = isValidSortType(sortType) ? sortType : "envelope";
         currentSortDirection = ["asc", "desc"].includes(sortDirection)
             ? sortDirection
             : defaultSortDirections[currentSortType] || "asc";
-        unclassifiedOnly = params.get("unclassified") === "1";
 
         if (recordSearchInput) {
             recordSearchInput.value = params.get("q") || "";
@@ -319,16 +383,78 @@
         });
     }
 
-    function updateUnclassifiedButton() {
-        if (!unclassifiedFilterButton) {
+    function updateRelationFilterUi() {
+        if (!relationFilterToggle || !relationFilterLabel) {
             return;
         }
 
-        unclassifiedFilterButton.classList.toggle("active", unclassifiedOnly);
-        unclassifiedFilterButton.setAttribute(
-            "aria-pressed",
-            unclassifiedOnly ? "true" : "false"
+        const currentOption = getCurrentRelationOption();
+        const currentLabel = currentOption ? currentOption.dataset.relationLabel : "전체";
+        const isAll = currentRelationFilter === RELATION_ALL;
+        const isUnclassified = currentRelationFilter === RELATION_UNCLASSIFIED;
+
+        relationFilterLabel.textContent = isAll
+            ? "관계: 전체"
+            : (isUnclassified ? "관계: 미분류" : `관계: ${currentLabel}`);
+        relationFilterToggle.classList.toggle("active", !isAll);
+
+        relationFilterButtons.forEach((button) => {
+            const isActive = button.dataset.relationFilter === currentRelationFilter;
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+    }
+
+    function syncRelationDropdownWidth() {
+        if (!relationFilterDropdown || !relationFilterToggle || !relationFilterPanel) {
+            return;
+        }
+
+        const previousHidden = relationFilterPanel.hidden;
+        const previousWidth = relationFilterDropdown.style.width;
+
+        relationFilterDropdown.style.width = "";
+        relationFilterPanel.hidden = false;
+
+        const viewportPadding = 28;
+        const maxWidth = Math.min(190, window.innerWidth - viewportPadding);
+        const relationOptionWidth = Array.from(relationFilterButtons).reduce((maxWidthValue, button) => {
+            const label = button.querySelector(".record-relation-chip-label");
+            const labelWidth = label ? label.scrollWidth : button.scrollWidth;
+            return Math.max(maxWidthValue, labelWidth + 56);
+        }, 0);
+        const targetWidth = Math.min(
+            maxWidth,
+            Math.max(
+                relationFilterToggle.scrollWidth,
+                relationOptionWidth,
+                112
+            )
         );
+
+        relationFilterDropdown.style.width = `${targetWidth}px`;
+        relationFilterPanel.hidden = previousHidden;
+
+        if (!targetWidth && previousWidth) {
+            relationFilterDropdown.style.width = previousWidth;
+        }
+    }
+
+    function setRelationPanelOpen(isOpen) {
+        if (!relationFilterToggle || !relationFilterPanel) {
+            return;
+        }
+
+        if (isOpen) {
+            syncRelationDropdownWidth();
+            relationFilterDropdown?.classList.add("is-open");
+        } else if (relationFilterDropdown) {
+            relationFilterDropdown.style.width = "";
+            relationFilterDropdown.classList.remove("is-open");
+        }
+
+        relationFilterPanel.hidden = !isOpen;
+        relationFilterToggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
     }
 
     function applyRecordView() {
@@ -346,10 +472,9 @@
             const matchesSearch = !keyword || searchText.includes(keyword);
             const matchesSide =
                 currentSideFilter === "all" || side === currentSideFilter;
-            const matchesUnclassified =
-                !unclassifiedOnly || isUnclassifiedRelation(relation);
+            const matchesRelation = matchesRelationFilter(relation);
 
-            if (matchesSearch && matchesSide && matchesUnclassified) {
+            if (matchesSearch && matchesSide && matchesRelation) {
                 card.style.display = "";
                 visibleCards.push(card);
             } else {
@@ -440,14 +565,27 @@
         });
     });
 
-    if (unclassifiedFilterButton) {
-        unclassifiedFilterButton.addEventListener("click", function () {
-            unclassifiedOnly = !unclassifiedOnly;
-            updateUnclassifiedButton();
-            applyRecordView();
-            syncRecordsUrl();
+    if (relationFilterToggle) {
+        relationFilterToggle.addEventListener("click", function () {
+            setRelationPanelOpen(relationFilterPanel ? relationFilterPanel.hidden : true);
         });
     }
+
+    relationFilterButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+            currentRelationFilter = button.dataset.relationFilter || RELATION_ALL;
+            updateRelationFilterUi();
+            applyRecordView();
+            syncRecordsUrl();
+            setRelationPanelOpen(false);
+        });
+    });
+
+    window.addEventListener("resize", function () {
+        if (relationFilterPanel && !relationFilterPanel.hidden) {
+            syncRelationDropdownWidth();
+        }
+    });
 
     sortButtons.forEach((button) => {
         button.addEventListener("click", function () {
@@ -483,6 +621,16 @@
 
     // 메뉴 바깥을 누르면 열린 메뉴 닫기
     document.addEventListener("click", function (event) {
+        if (
+            relationFilterPanel &&
+            relationFilterToggle &&
+            !relationFilterPanel.hidden &&
+            !event.target.closest("#relationFilterPanel") &&
+            !event.target.closest("#relationFilterToggle")
+        ) {
+            setRelationPanelOpen(false);
+        }
+
         if (event.target.closest(".record-menu")) {
             return;
         }
@@ -494,7 +642,7 @@
 
     restoreRecordsStateFromUrl();
     updateSideFilterButtons();
-    updateUnclassifiedButton();
+    updateRelationFilterUi();
     updateSortButtons();
     applyRecordView();
     syncRecordsUrl();

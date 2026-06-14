@@ -220,7 +220,7 @@ def seed_dummy_data(count, seed):
     print(f"신부측: {bride_count}건")
     print(f"신랑측: {groom_count}건")
     print(f"사용자 추가 관계: {', '.join(CUSTOM_RELATIONS)}")
-    print(f"관계 미분류: {unclassified_count}건")
+    print(f"미분류: {unclassified_count}건")
     print(f"삭제 샘플: {len(deleted_gifts)}건")
     print(f"랜덤 seed: {seed}")
 
