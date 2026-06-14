@@ -355,18 +355,35 @@
             });
             statusResult = await statusResponse.json();
         } catch (error) {
-            alert("관계를 삭제하는 중 오류가 발생했습니다. 다시 시도해 주세요.");
+            await window.showAppAlert({
+                title: "관계를 삭제하지 못했어요",
+                message: "관계를 삭제하는 중 오류가 발생했습니다.\n다시 시도해 주세요.",
+                confirmText: "확인",
+            });
             return;
         }
 
         if (!statusResponse.ok || !statusResult.success) {
-            alert(statusResult.message || "현재 이 관계를 삭제할 수 없습니다.");
+            const usageCount = Number(statusResult.usage_count || 0);
+            const message = usageCount > 0
+                ? `"${relationName}" 관계가 현재 ${usageCount}건의 내역에서 사용 중입니다.\n먼저 해당 내역의 관계를 변경한 뒤 삭제해 주세요.`
+                : (statusResult.message || "현재 이 관계를 삭제할 수 없습니다.");
+
+            await window.showAppAlert({
+                title: "아직 사용 중인 관계예요",
+                message,
+                confirmText: "확인",
+            });
             return;
         }
 
-        const shouldDelete = confirm(
-            `"${relationName}" 관계를 삭제할까요?\n삭제하면 수정 화면의 관계 버튼 목록에서 사라집니다.`
-        );
+        const shouldDelete = await window.showAppConfirm({
+            title: "관계를 삭제할까요?",
+            message: `"${relationName}" 관계를 목록에서 삭제합니다.\n기존 내역의 관계값은 변경되지 않습니다.`,
+            confirmText: "삭제",
+            cancelText: "취소",
+            danger: true,
+        });
 
         if (!shouldDelete) {
             return;
@@ -384,12 +401,20 @@
             });
             result = await response.json();
         } catch (error) {
-            alert("관계를 삭제하는 중 오류가 발생했습니다. 다시 시도해 주세요.");
+            await window.showAppAlert({
+                title: "관계를 삭제하지 못했어요",
+                message: "관계를 삭제하는 중 오류가 발생했습니다.\n다시 시도해 주세요.",
+                confirmText: "확인",
+            });
             return;
         }
 
         if (!response.ok || !result.success) {
-            alert(result.message || "현재 이 관계를 삭제할 수 없습니다.");
+            await window.showAppAlert({
+                title: "관계를 삭제하지 못했어요",
+                message: result.message || "현재 이 관계를 삭제할 수 없습니다.",
+                confirmText: "확인",
+            });
             return;
         }
 

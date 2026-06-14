@@ -25,7 +25,7 @@
                 <span class="app-title-text">Happy Wedding</span>
             </div>
 
-            <a href="{{ url_for('export_excel') }}" class="header-export-button">
+            <a href="{{ url_for('export_excel') }}" class="header-export-button" data-export-download>
                 <i class="bi bi-file-earmark-spreadsheet"></i>
                 <span>엑셀 다운로드</span>
             </a>
@@ -52,5 +52,170 @@
             </a>
         </nav>
     </div>
+
+    <div class="app-modal-backdrop" id="appModal" hidden>
+        <div class="app-modal-card" role="dialog" aria-modal="true" aria-labelledby="appModalTitle">
+            <div class="app-modal-header">
+                <div class="app-modal-icon" id="appModalIcon" aria-hidden="true">!</div>
+                <h3 class="app-modal-title" id="appModalTitle"></h3>
+            </div>
+            <p class="app-modal-message" id="appModalMessage"></p>
+
+            <div class="app-modal-actions">
+                <button type="button" class="app-modal-button app-modal-cancel" id="appModalCancel">
+                    취소
+                </button>
+                <button type="button" class="app-modal-button app-modal-confirm" id="appModalConfirm">
+                    확인
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            const modal = document.getElementById("appModal");
+            const title = document.getElementById("appModalTitle");
+            const message = document.getElementById("appModalMessage");
+            const icon = document.getElementById("appModalIcon");
+            const cancelButton = document.getElementById("appModalCancel");
+            const confirmButton = document.getElementById("appModalConfirm");
+            const actions = modal.querySelector(".app-modal-actions");
+
+            if (!modal || !title || !message || !icon || !cancelButton || !confirmButton) {
+                return;
+            }
+
+            let resolveModal = null;
+
+            function closeModal(result) {
+                modal.hidden = true;
+                confirmButton.classList.remove("danger");
+                document.removeEventListener("keydown", handleModalKeydown);
+
+                if (resolveModal) {
+                    resolveModal(result);
+                    resolveModal = null;
+                }
+            }
+
+            function handleModalKeydown(event) {
+                if (event.key === "Escape") {
+                    closeModal(false);
+                }
+            }
+
+            function openModal(options) {
+                const {
+                    title: modalTitle = "확인",
+                    message: modalMessage = "",
+                    confirmText = "확인",
+                    cancelText = "취소",
+                    danger = false,
+                    alertOnly = false,
+                } = options || {};
+
+                title.textContent = modalTitle;
+                message.textContent = modalMessage;
+                icon.textContent = danger ? "!" : "i";
+                confirmButton.textContent = confirmText;
+                cancelButton.textContent = cancelText;
+                cancelButton.hidden = alertOnly;
+                confirmButton.classList.toggle("danger", Boolean(danger));
+                icon.classList.toggle("danger", Boolean(danger));
+                if (actions) {
+                    actions.classList.toggle("is-confirm", !alertOnly);
+                }
+                modal.hidden = false;
+                confirmButton.focus();
+
+                document.addEventListener("keydown", handleModalKeydown);
+
+                return new Promise((resolve) => {
+                    resolveModal = resolve;
+                });
+            }
+
+            cancelButton.addEventListener("click", () => closeModal(false));
+            confirmButton.addEventListener("click", () => closeModal(true));
+            modal.addEventListener("click", (event) => {
+                if (event.target === modal) {
+                    closeModal(false);
+                }
+            });
+
+            window.showAppAlert = (options) => openModal({
+                ...options,
+                alertOnly: true,
+            });
+
+            window.showAppConfirm = (options) => openModal(options);
+
+            document.querySelectorAll("form[data-app-confirm]").forEach((form) => {
+                form.addEventListener("submit", async (event) => {
+                    if (form.dataset.appConfirmApproved === "1") {
+                        delete form.dataset.appConfirmApproved;
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    const ok = await window.showAppConfirm({
+                        title: form.dataset.confirmTitle || "확인할까요?",
+                        message: form.dataset.confirmMessage || "",
+                        confirmText: form.dataset.confirmText || "확인",
+                        cancelText: form.dataset.cancelText || "취소",
+                        danger: form.dataset.confirmDanger === "1",
+                    });
+
+                    if (ok) {
+                        form.dataset.appConfirmApproved = "1";
+                        form.requestSubmit();
+                    }
+                });
+            });
+
+            document.querySelectorAll("[data-app-confirm-submit]").forEach((button) => {
+                button.addEventListener("click", async (event) => {
+                    if (button.dataset.appConfirmApproved === "1") {
+                        delete button.dataset.appConfirmApproved;
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    const ok = await window.showAppConfirm({
+                        title: button.dataset.confirmTitle || "확인할까요?",
+                        message: button.dataset.confirmMessage || "",
+                        confirmText: button.dataset.confirmText || "확인",
+                        cancelText: button.dataset.cancelText || "취소",
+                        danger: button.dataset.confirmDanger === "1",
+                    });
+
+                    if (ok && button.form) {
+                        button.dataset.appConfirmApproved = "1";
+                        button.form.requestSubmit(button);
+                    }
+                });
+            });
+
+            document.querySelectorAll("[data-export-download]").forEach((downloadLink) => {
+                downloadLink.addEventListener("click", async (event) => {
+                    event.preventDefault();
+
+                    const ok = await window.showAppConfirm({
+                        title: "엑셀 파일을 다운로드할까요?",
+                        message: "현재 입력된 내역을 기준으로 파일이 생성됩니다.",
+                        confirmText: "다운로드",
+                        cancelText: "취소",
+                    });
+
+                    if (ok) {
+                        window.location.href = downloadLink.href;
+                    }
+                });
+            });
+        })();
+    </script>
 </body>
 </html>

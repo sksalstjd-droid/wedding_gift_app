@@ -120,7 +120,12 @@
                                         method="POST"
                                         action="{{ url_for('delete_gift', gift_id=gift.id) }}"
                                         data-delete-form
-                                        onsubmit="return confirm('이 내역을 삭제할까요? 삭제 후 입력 화면의 다음 봉투번호가 #{{ gift.envelope_no }}로 돌아갑니다.');"
+                                        data-app-confirm
+                                        data-confirm-title="이 내역을 삭제할까요?"
+                                        data-confirm-message="삭제한 내역은 목록, 통계에서 제외됩니다."
+                                        data-confirm-text="삭제"
+                                        data-cancel-text="취소"
+                                        data-confirm-danger="1"
                                     >
                                         <input
                                             type="hidden"
